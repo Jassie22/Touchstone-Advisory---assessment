@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { CalculatorForm } from './components/CalculatorForm';
 import { ResultsDisplay } from './components/ResultsDisplay';
 import { HistoryView } from './components/HistoryView';
+import { BatchCalculator } from './components/BatchCalculator';
+import { PriceVisualization } from './components/PriceVisualization';
 import { CalculationInput, CalculationResult } from './types';
 import { calculateBlackScholes } from './services/api';
 import './App.css';
@@ -10,7 +12,7 @@ function App() {
   const [currentResult, setCurrentResult] = useState<CalculationResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'calculator' | 'history'>('calculator');
+  const [activeTab, setActiveTab] = useState<'calculator' | 'batch' | 'history' | 'visualization'>('calculator');
 
   const handleCalculate = async (input: CalculationInput) => {
     try {
@@ -43,10 +45,22 @@ function App() {
           Calculator
         </button>
         <button
+          className={`tab-button ${activeTab === 'batch' ? 'active' : ''}`}
+          onClick={() => setActiveTab('batch')}
+        >
+          Batch
+        </button>
+        <button
           className={`tab-button ${activeTab === 'history' ? 'active' : ''}`}
           onClick={() => setActiveTab('history')}
         >
           History
+        </button>
+        <button
+          className={`tab-button ${activeTab === 'visualization' ? 'active' : ''}`}
+          onClick={() => setActiveTab('visualization')}
+        >
+          Visualization
         </button>
       </nav>
 
@@ -59,7 +73,11 @@ function App() {
           </div>
         )}
 
+        {activeTab === 'batch' && <BatchCalculator />}
+
         {activeTab === 'history' && <HistoryView />}
+
+        {activeTab === 'visualization' && <PriceVisualization />}
       </main>
 
       <footer className="app-footer">

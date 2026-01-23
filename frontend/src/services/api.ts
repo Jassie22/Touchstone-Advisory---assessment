@@ -1,4 +1,4 @@
-import { CalculationInput, CalculationResult, CalculationSummary } from '../types';
+import { CalculationInput, CalculationResult, CalculationSummary, BatchCalculationRequest, BatchCalculationResponse } from '../types';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
@@ -31,4 +31,17 @@ export async function getCalculationHistory(): Promise<CalculationSummary[]> {
 export async function getCalculationById(id: number): Promise<CalculationResult> {
   const response = await fetch(`${API_BASE_URL}/api/history/${id}`);
   return handleResponse<CalculationResult>(response);
+}
+
+export async function batchCalculateBlackScholes(
+  request: BatchCalculationRequest
+): Promise<BatchCalculationResponse> {
+  const response = await fetch(`${API_BASE_URL}/api/calculate/batch`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(request),
+  });
+  return handleResponse<BatchCalculationResponse>(response);
 }

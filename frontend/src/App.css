@@ -455,4 +455,245 @@
   .history-table td {
     padding: 0.5rem;
   }
+
+  .batch-input-table {
+    font-size: 0.8rem;
+  }
+
+  .batch-input-table th,
+  .batch-input-table td {
+    padding: 0.4rem;
+  }
+
+  .visualization-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-container {
+    padding: 0.5rem;
+  }
+}
+
+/* Batch Calculator Styles */
+.batch-calculator {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.batch-header {
+  margin-bottom: 1.5rem;
+}
+
+.batch-header h2 {
+  margin: 0 0 0.5rem;
+  color: #333;
+}
+
+.batch-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.batch-table-container {
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+
+.batch-input-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.batch-input-table th {
+  background-color: #f8f9fa;
+  padding: 0.75rem;
+  text-align: left;
+  font-weight: 600;
+  color: #555;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.batch-input-table td {
+  padding: 0.5rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.batch-input-table input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.batch-input-table input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.remove-row-button {
+  padding: 0.4rem 0.8rem;
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background-color 0.3s ease;
+}
+
+.remove-row-button:hover:not(:disabled) {
+  background-color: #c0392b;
+}
+
+.remove-row-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.batch-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.add-row-button {
+  padding: 0.75rem 1.5rem;
+  background-color: #27ae60;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+}
+
+.add-row-button:hover {
+  background-color: #229954;
+}
+
+.batch-results {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 2px solid #e0e0e0;
+}
+
+.batch-summary {
+  margin-bottom: 1.5rem;
+}
+
+.batch-summary h3 {
+  margin: 0 0 0.5rem;
+  color: #333;
+}
+
+.batch-results-table-container {
+  overflow-x: auto;
+}
+
+.batch-results-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.batch-results-table th {
+  background-color: #f8f9fa;
+  padding: 0.75rem;
+  text-align: left;
+  font-weight: 600;
+  color: #555;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.batch-results-table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.batch-results-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+/* Price Visualization Styles */
+.price-visualization {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.visualization-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.visualization-header h2 {
+  margin: 0;
+  color: #333;
+}
+
+.chart-container {
+  margin: 2rem 0;
+  padding: 1rem;
+  background-color: #fafafa;
+  border-radius: 8px;
+}
+
+.visualization-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.stat-card {
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.stat-card h4 {
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.stat-value {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.visualization-loading,
+.visualization-empty {
+  text-align: center;
+  padding: 3rem;
+  color: #666;
+}
+
+.visualization-error {
+  text-align: center;
+  padding: 2rem;
+  background-color: #fee;
+  color: #c33;
+  border-radius: 4px;
+}
+
+.visualization-error button {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: #c33;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }

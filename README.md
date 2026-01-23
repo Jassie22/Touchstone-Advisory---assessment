@@ -112,6 +112,18 @@ Frontend opens at `http://localhost:3000`
    - The table shows inputs (S₀, X, t, r, d, v) and the resulting call/put prices.
    - Click **Refresh** to reload the history.
 
+3. **Batch Calculations:**
+   - Click on the **Batch** tab to calculate multiple option prices at once.
+   - Add multiple rows with different parameter sets.
+   - All calculations are processed in a single API call for efficiency.
+   - Results show successful/failed counts and a table of all calculated prices.
+
+4. **Price Visualization:**
+   - Click on the **Visualization** tab to see option prices over time.
+   - Interactive line chart showing call and put price trends.
+   - Statistics showing total calculations and average prices.
+   - Chart updates automatically when new calculations are performed.
+
 ## Challenge Requirements Checklist
 
 - **React + TypeScript frontend** for input, results, and history views.
@@ -168,6 +180,29 @@ Get all calculation history (summary format, excludes d1/d2).
 Get a specific calculation by ID (includes d1/d2 intermediate values).
 
 **Response:** Full calculation details (same format as POST response)
+
+### `POST /api/calculate/batch`
+Calculate Black-Scholes prices for multiple parameter sets at once.
+
+**Request Body:**
+```json
+{
+  "calculations": [
+    { "s0": 100.0, "x": 100.0, "t": 1.0, "r": 0.05, "d": 0.02, "v": 0.2 },
+    { "s0": 110.0, "x": 100.0, "t": 0.5, "r": 0.03, "d": 0.01, "v": 0.25 }
+  ]
+}
+```
+
+**Response:**
+```json
+{
+  "results": [/* array of CalculationRead objects */],
+  "total": 2,
+  "successful": 2,
+  "failed": 0
+}
+```
 
 ### `GET /health`
 Health check endpoint.
@@ -268,6 +303,15 @@ The application handles various error cases:
 
 All errors are displayed to the user with appropriate error messages.
 
+## Features
+
+- ✅ **Single Calculation**: Calculate individual option prices with detailed results
+- ✅ **Batch Calculations**: Process multiple parameter sets simultaneously
+- ✅ **Calculation History**: View and manage all previous calculations
+- ✅ **Price Visualization**: Interactive charts showing price trends over time
+- ✅ **Flexible Input**: Support for both percentage and decimal input formats
+- ✅ **Parameter Definitions**: Built-in help panel explaining each input parameter
+
 ## Future Enhancements
 
 Potential improvements:
@@ -276,23 +320,5 @@ Potential improvements:
 - Add option to export history to CSV
 - Implement pagination for large history lists
 - Add user authentication and personal calculation history
-- Support for batch calculations
-- Visualization of option prices over time
 
-## License
 
-This project is created as a take-home challenge submission.
-
-## Evaluation Criteria
-
-This project meets all evaluation criteria specified in the challenge. See [EVALUATION_SUMMARY.md](EVALUATION_SUMMARY.md) for a detailed assessment of:
-
-- ✅ Functionality: Complete implementation of all requirements
-- ✅ Code Quality: Clean, modular, well-documented codebase  
-- ✅ User Experience: Intuitive, professional UI with helpful features
-- ✅ Performance: Efficient calculations with comprehensive edge case handling
-- ✅ GitHub Usage: Well-structured repository with clear documentation
-
-## Contact
-
-For questions or issues, please refer to the challenge instructions or contact the evaluation team.

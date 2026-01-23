@@ -116,3 +116,75 @@ def get_calculation(
         created_at=calc.created_at,
     )
 
+
+@router.post(
+    "/calculate/batch",
+    response_model=schemas.BatchCalculationResponse,
+    status_code=status.HTTP_200_OK,
+)
+def batch_calculate(
+    payload: schemas.BatchCalculationRequest, db: Session = Depends(get_db)
+) -> schemas.BatchCalculationResponse:
+    """
+    Calculate Black-Scholes prices for multiple parameter sets at once.
+    Returns all successful calculations and counts of successful/failed attempts.
+    """
+    results: List[schemas.CalculationRead] = []
+    successful = 0
+    failed = 0
+
+    for calc_input in payload.calculations:
+        try:
+            call_price, put_price, d1, d2 = calculate_call_put(
+                s0=calc_input.s0,
+                x=calc_input.x,
+                t=calc_input.t,
+                r=calc_input.r,
+                d=calc_input.d,
+                v=calc_input.v,
+            )
+
+            calc = models.Calculation(
+                s0=calc_input.s0,
+                x=calc_input.x,
+                t=calc_input.t,
+                r=calc_input.r,
+                d=calc_input.d,
+                v=calc_input.v,
+                call_price=call_price,
+                put_price=put_price,
+            )
+            db.add(calc)
+            db.flush()  # Get ID without committing
+
+            result = schemas.CalculationRead(
+                id=calc.id,
+                s0=calc.s0,
+                x=calc.x,
+                t=calc.t,
+                r=calc.r,
+                d=calc.d,
+                v=calc.v,
+                call_price=calc.call_price,
+                put_price=calc.put_price,
+                d1=d1,
+                d2=d2,
+                created_at=calc.created_at,
+            )
+            results.append(result)
+            successful += 1
+        except (ValueError, Exception) as exc:
+            failed += 1
+            # Continue processing other calculations even if one fails
+            continue
+
+    # Commit all successful calculations at once
+    db.commit()
+
+    return schemas.BatchCalculationResponse(
+        results=results,
+        total=len(payload.calculations),
+        successful=successful,
+        failed=failed,
+    )
+

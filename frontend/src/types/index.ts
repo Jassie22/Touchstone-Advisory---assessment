@@ -34,3 +34,14 @@ export interface CalculationSummary {
   put_price: number;
   created_at: string;
 }
+
+export interface BatchCalculationRequest {
+  calculations: CalculationInput[];
+}
+
+export interface BatchCalculationResponse {
+  results: CalculationResult[];
+  total: number;
+  successful: number;
+  failed: number;
+}

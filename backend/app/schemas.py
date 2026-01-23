@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -43,4 +43,15 @@ class CalculationSummary(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class BatchCalculationRequest(BaseModel):
+    calculations: List[CalculationCreate] = Field(..., min_items=1, max_items=100)
+
+
+class BatchCalculationResponse(BaseModel):
+    results: List[CalculationRead]
+    total: int
+    successful: int
+    failed: int
 

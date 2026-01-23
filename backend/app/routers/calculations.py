@@ -1,0 +1,118 @@
+from typing import List
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+
+from .. import models, schemas
+from ..black_scholes import calculate_call_put
+from ..database import get_db
+
+router = APIRouter(prefix="/api", tags=["calculations"])
+
+
+@router.post(
+    "/calculate",
+    response_model=schemas.CalculationRead,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_calculation(
+    payload: schemas.CalculationCreate, db: Session = Depends(get_db)
+) -> schemas.CalculationRead:
+    try:
+        call_price, put_price, d1, d2 = calculate_call_put(
+            s0=payload.s0,
+            x=payload.x,
+            t=payload.t,
+            r=payload.r,
+            d=payload.d,
+            v=payload.v,
+        )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        ) from exc
+
+    calc = models.Calculation(
+        s0=payload.s0,
+        x=payload.x,
+        t=payload.t,
+        r=payload.r,
+        d=payload.d,
+        v=payload.v,
+        call_price=call_price,
+        put_price=put_price,
+    )
+    db.add(calc)
+    db.commit()
+    db.refresh(calc)
+
+    return schemas.CalculationRead(
+        id=calc.id,
+        s0=calc.s0,
+        x=calc.x,
+        t=calc.t,
+        r=calc.r,
+        d=calc.d,
+        v=calc.v,
+        call_price=calc.call_price,
+        put_price=calc.put_price,
+        d1=d1,
+        d2=d2,
+        created_at=calc.created_at,
+    )
+
+
+@router.get("/history", response_model=List[schemas.CalculationSummary])
+def list_calculations(db: Session = Depends(get_db)) -> List[schemas.CalculationSummary]:
+    calculations = (
+        db.query(models.Calculation)
+        .order_by(models.Calculation.created_at.desc())
+        .all()
+    )
+    return calculations
+
+
+@router.get(
+    "/history/{calculation_id}",
+    response_model=schemas.CalculationRead,
+)
+def get_calculation(
+    calculation_id: int, db: Session = Depends(get_db)
+) -> schemas.CalculationRead:
+    calc = (
+        db.query(models.Calculation)
+        .filter(models.Calculation.id == calculation_id)
+        .first()
+    )
+    if not calc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Calculation not found.",
+        )
+
+    # Recompute d1 and d2 for completeness; prices are persisted
+    call_price, put_price, d1, d2 = calculate_call_put(
+        s0=calc.s0,
+        x=calc.x,
+        t=calc.t,
+        r=calc.r,
+        d=calc.d,
+        v=calc.v,
+    )
+    # Use stored prices (for consistency with DB), but expose d1/d2 from recomputation
+    return schemas.CalculationRead(
+        id=calc.id,
+        s0=calc.s0,
+        x=calc.x,
+        t=calc.t,
+        r=calc.r,
+        d=calc.d,
+        v=calc.v,
+        call_price=calc.call_price,
+        put_price=calc.put_price,
+        d1=d1,
+        d2=d2,
+        created_at=calc.created_at,
+    )
+

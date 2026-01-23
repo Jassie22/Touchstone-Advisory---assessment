@@ -1,244 +1,271 @@
 import React, { useState, FormEvent } from 'react';
 import { CalculationInput } from '../types';
+import { batchCalculateBlackScholes } from '../services/api';
+import { BatchCalculationResponse } from '../types';
 
 interface CalculatorFormProps {
   onSubmit: (input: CalculationInput) => void;
+  onBatchResults?: (results: BatchCalculationResponse) => void;
   isLoading?: boolean;
 }
 
 export const CalculatorForm: React.FC<CalculatorFormProps> = ({
   onSubmit,
+  onBatchResults,
   isLoading = false,
 }) => {
-  const [formData, setFormData] = useState<CalculationInput>({
-    s0: 100,
-    x: 100,
-    t: 1,
-    r: 5 as unknown as number,
-    d: 2 as unknown as number,
-    v: 20 as unknown as number,
-  });
+  const [rows, setRows] = useState<CalculationInput[]>([
+    { s0: 100, x: 100, t: 1, r: 5 as unknown as number, d: 2 as unknown as number, v: 20 as unknown as number },
+  ]);
 
-  const [errors, setErrors] = useState<
-    Partial<Record<keyof CalculationInput, string>>
-  >({});
+  const [errors, setErrors] = useState<Record<number, Partial<Record<keyof CalculationInput, string>>>>({});
 
-  const validateField = (
-    name: keyof CalculationInput,
-    value: number
-  ): string | undefined => {
-    if (value === ('' as unknown as number) || value === (NaN as unknown as number)) {
-      return `${name} is required`;
-    }
-    if (isNaN(value)) {
-      return `${name} must be a number`;
-    }
+  const validateRow = (rowIndex: number, rowData: CalculationInput): Partial<Record<keyof CalculationInput, string>> => {
+    const rowErrors: Partial<Record<keyof CalculationInput, string>> = {};
 
-    if (name === 's0' || name === 'x' || name === 't') {
-      if (value <= 0) {
-        return `${name} must be greater than 0`;
+    Object.keys(rowData).forEach((key) => {
+      const value = rowData[key as keyof CalculationInput];
+      if (value === ('' as unknown as number) || value === (NaN as unknown as number)) {
+        rowErrors[key as keyof CalculationInput] = `${key} is required`;
+        return;
       }
-    }
-
-    if (name === 'r' || name === 'd' || name === 'v') {
-      if (value < 0 || value > 100) {
-        return `${name} should be between 0 and 100`;
+      if (isNaN(value as number)) {
+        rowErrors[key as keyof CalculationInput] = `${key} must be a number`;
+        return;
       }
-    }
 
-    return undefined;
+      if (key === 's0' || key === 'x' || key === 't') {
+        if (value <= 0) {
+          rowErrors[key as keyof CalculationInput] = `${key} must be greater than 0`;
+        }
+      }
+
+      if (key === 'r' || key === 'd' || key === 'v') {
+        if (value < 0 || value > 100) {
+          rowErrors[key as keyof CalculationInput] = `${key} should be between 0 and 100`;
+        }
+      }
+    });
+
+    return rowErrors;
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    const numValue =
-      value === '' ? ('' as unknown as number) : parseFloat(value);
+  const handleChange = (rowIndex: number, field: keyof CalculationInput, value: string) => {
+    const numValue = value === '' ? ('' as unknown as number) : parseFloat(value);
+    
+    const updatedRows = [...rows];
+    updatedRows[rowIndex] = {
+      ...updatedRows[rowIndex],
+      [field]: numValue,
+    };
+    setRows(updatedRows);
 
-    setFormData((prev) => ({
-      ...prev,
-      [name]: numValue,
-    }));
-
-    if (errors[name as keyof CalculationInput]) {
-      setErrors((prev) => {
+    // Clear error for this field
+    if (errors[rowIndex]?.[field]) {
+      setErrors(prev => {
         const newErrors = { ...prev };
-        delete newErrors[name as keyof CalculationInput];
+        if (newErrors[rowIndex]) {
+          delete newErrors[rowIndex][field];
+        }
         return newErrors;
       });
     }
   };
 
-  const handleSubmit = (e: FormEvent) => {
+  const addRow = () => {
+    setRows([...rows, { s0: 100, x: 100, t: 1, r: 5 as unknown as number, d: 2 as unknown as number, v: 20 as unknown as number }]);
+  };
+
+  const removeRow = (index: number) => {
+    if (rows.length > 1) {
+      setRows(rows.filter((_, i) => i !== index));
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[index];
+        // Reindex errors
+        const reindexed: Record<number, Partial<Record<keyof CalculationInput, string>>> = {};
+        Object.keys(newErrors).forEach(key => {
+          const oldIdx = Number(key);
+          if (oldIdx > index) {
+            reindexed[oldIdx - 1] = newErrors[oldIdx];
+          } else if (oldIdx < index) {
+            reindexed[oldIdx] = newErrors[oldIdx];
+          }
+        });
+        return reindexed;
+      });
+    }
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    const newErrors: Partial<Record<keyof CalculationInput, string>> = {};
+    // Validate all rows
+    const allErrors: Record<number, Partial<Record<keyof CalculationInput, string>>> = {};
     let hasErrors = false;
 
-    (Object.keys(formData) as Array<keyof CalculationInput>).forEach((key) => {
-      const error = validateField(key, formData[key]);
-      if (error) {
-        newErrors[key] = error;
+    rows.forEach((row, index) => {
+      const rowErrors = validateRow(index, row);
+      if (Object.keys(rowErrors).length > 0) {
+        allErrors[index] = rowErrors;
         hasErrors = true;
       }
     });
 
     if (hasErrors) {
-      setErrors(newErrors);
+      setErrors(allErrors);
       return;
     }
 
     // Convert percentages to decimals
-    const payload: CalculationInput = {
-      ...formData,
-      r: formData.r / 100,
-      d: formData.d / 100,
-      v: formData.v / 100,
-    };
+    const processedRows = rows.map(row => ({
+      ...row,
+      r: row.r / 100,
+      d: row.d / 100,
+      v: row.v / 100,
+    }));
 
-    onSubmit(payload);
+    if (rows.length === 1) {
+      // Single calculation
+      onSubmit(processedRows[0]);
+    } else {
+      // Batch calculation
+      try {
+        const response = await batchCalculateBlackScholes({ calculations: processedRows });
+        if (onBatchResults) {
+          onBatchResults(response);
+        }
+      } catch (err) {
+        alert(err instanceof Error ? err.message : 'Failed to calculate batch');
+      }
+    }
   };
 
   return (
     <>
       <form onSubmit={handleSubmit} className="calculator-form">
-        <div className="form-header">
-          <h2 className="panel-title">Single Calculation</h2>
+        <div className="form-header-compact">
           <p className="panel-subtitle">
-            Enter market assumptions below. Rates and volatility are entered as percentages.
+            Enter market assumptions. Rates and volatility are entered as percentages.
           </p>
         </div>
 
-        <div className="form-grid">
-          <div className="form-group">
-            <label htmlFor="s0">
-              Current Stock Price (S<sub>0</sub>)
-            </label>
-            <input
-              type="number"
-              id="s0"
-              name="s0"
-              value={formData.s0}
-              onChange={handleChange}
-              step="0.01"
-              min="0.01"
-              required
-            />
-            <span className="field-helper">
-              Current underlying share price
-            </span>
-            {errors.s0 && <span className="error">{errors.s0}</span>}
-          </div>
+        <div className="calculator-rows">
+          {rows.map((row, rowIndex) => (
+            <div key={rowIndex} className="calculator-row">
+              {rowIndex > 0 && (
+                <button
+                  type="button"
+                  onClick={() => removeRow(rowIndex)}
+                  className="remove-row-btn"
+                  title="Remove row"
+                >
+                  ×
+                </button>
+              )}
+              <div className="form-grid-compact">
+                <div className="form-group">
+                  <label>S<sub>0</sub></label>
+                  <input
+                    type="number"
+                    value={row.s0}
+                    onChange={(e) => handleChange(rowIndex, 's0', e.target.value)}
+                    step="0.01"
+                    min="0.01"
+                    required
+                  />
+                  {errors[rowIndex]?.s0 && <span className="error">{errors[rowIndex].s0}</span>}
+                </div>
 
-          <div className="form-group">
-            <label htmlFor="x">Strike Price (X)</label>
-            <input
-              type="number"
-              id="x"
-              name="x"
-              value={formData.x}
-              onChange={handleChange}
-              step="0.01"
-              min="0.01"
-              required
-            />
-            <span className="field-helper">Exercise price of the option</span>
-            {errors.x && <span className="error">{errors.x}</span>}
-          </div>
+                <div className="form-group">
+                  <label>X</label>
+                  <input
+                    type="number"
+                    value={row.x}
+                    onChange={(e) => handleChange(rowIndex, 'x', e.target.value)}
+                    step="0.01"
+                    min="0.01"
+                    required
+                  />
+                  {errors[rowIndex]?.x && <span className="error">{errors[rowIndex].x}</span>}
+                </div>
 
-          <div className="form-group">
-            <label htmlFor="t">Time to Maturity (t, in years)</label>
-            <input
-              type="number"
-              id="t"
-              name="t"
-              value={formData.t}
-              onChange={handleChange}
-              step="0.01"
-              min="0.01"
-              required
-            />
-            <span className="field-helper">
-              For example, 0.5 = 6 months, 1 = 1 year
-            </span>
-            {errors.t && <span className="error">{errors.t}</span>}
-          </div>
+                <div className="form-group">
+                  <label>t</label>
+                  <input
+                    type="number"
+                    value={row.t}
+                    onChange={(e) => handleChange(rowIndex, 't', e.target.value)}
+                    step="0.01"
+                    min="0.01"
+                    required
+                  />
+                  {errors[rowIndex]?.t && <span className="error">{errors[rowIndex].t}</span>}
+                </div>
 
-          <div className="form-group">
-            <label htmlFor="r">
-              Risk-Free Interest Rate (r)
-            </label>
-            <div className="input-with-symbol">
-              <input
-                type="number"
-                id="r"
-                name="r"
-                value={formData.r}
-                onChange={handleChange}
-                step="0.01"
-                min="0"
-                max="100"
-                required
-              />
-              <span className="input-symbol">%</span>
+                <div className="form-group">
+                  <label>r</label>
+                  <div className="input-with-symbol">
+                    <input
+                      type="number"
+                      value={row.r}
+                      onChange={(e) => handleChange(rowIndex, 'r', e.target.value)}
+                      step="0.01"
+                      min="0"
+                      max="100"
+                      required
+                    />
+                    <span className="input-symbol">%</span>
+                  </div>
+                  {errors[rowIndex]?.r && <span className="error">{errors[rowIndex].r}</span>}
+                </div>
+
+                <div className="form-group">
+                  <label>d</label>
+                  <div className="input-with-symbol">
+                    <input
+                      type="number"
+                      value={row.d}
+                      onChange={(e) => handleChange(rowIndex, 'd', e.target.value)}
+                      step="0.01"
+                      min="0"
+                      max="100"
+                      required
+                    />
+                    <span className="input-symbol">%</span>
+                  </div>
+                  {errors[rowIndex]?.d && <span className="error">{errors[rowIndex].d}</span>}
+                </div>
+
+                <div className="form-group">
+                  <label>v</label>
+                  <div className="input-with-symbol">
+                    <input
+                      type="number"
+                      value={row.v}
+                      onChange={(e) => handleChange(rowIndex, 'v', e.target.value)}
+                      step="0.01"
+                      min="0"
+                      max="100"
+                      required
+                    />
+                    <span className="input-symbol">%</span>
+                  </div>
+                  {errors[rowIndex]?.v && <span className="error">{errors[rowIndex].v}</span>}
+                </div>
+              </div>
             </div>
-            <span className="field-helper">
-              Typically government bond yield at the relevant tenor
-            </span>
-            {errors.r && <span className="error">{errors.r}</span>}
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="d">
-              Dividend Yield (d)
-            </label>
-            <div className="input-with-symbol">
-              <input
-                type="number"
-                id="d"
-                name="d"
-                value={formData.d}
-                onChange={handleChange}
-                step="0.01"
-                min="0"
-                max="100"
-                required
-              />
-              <span className="input-symbol">%</span>
-            </div>
-            <span className="field-helper">
-              Forward-looking annual dividend yield
-            </span>
-            {errors.d && <span className="error">{errors.d}</span>}
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="v">
-              Volatility (v)
-            </label>
-            <div className="input-with-symbol">
-              <input
-                type="number"
-                id="v"
-                name="v"
-                value={formData.v}
-                onChange={handleChange}
-                step="0.01"
-                min="0"
-                max="100"
-                required
-              />
-              <span className="input-symbol">%</span>
-            </div>
-            <span className="field-helper">
-              Annualised volatility of the underlying share price
-            </span>
-            {errors.v && <span className="error">{errors.v}</span>}
-          </div>
+          ))}
         </div>
 
-        <button type="submit" disabled={isLoading} className="submit-button">
-          {isLoading ? 'Calculating...' : 'Calculate Black-Scholes Prices'}
-        </button>
+        <div className="form-actions">
+          <button type="button" onClick={addRow} className="add-row-btn">
+            + Add Row
+          </button>
+          <button type="submit" disabled={isLoading} className="submit-button">
+            {isLoading ? 'Calculating...' : `Calculate ${rows.length} Option${rows.length !== 1 ? 's' : ''}`}
+          </button>
+        </div>
       </form>
 
       <div className="info-panels-container">

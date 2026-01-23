@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { CalculatorForm } from './components/CalculatorForm';
 import { ResultsDisplay } from './components/ResultsDisplay';
 import { HistoryView } from './components/HistoryView';
-import { BatchCalculator } from './components/BatchCalculator';
-import { CalculationInput, CalculationResult } from './types';
+import { CalculationInput, CalculationResult, BatchCalculationResponse } from './types';
 import { calculateBlackScholes } from './services/api';
 import './App.css';
 
@@ -19,7 +18,6 @@ function App() {
       setError(null);
       const result = await calculateBlackScholes(input);
       setCurrentResult(result);
-      // Switch to calculator tab to show results
       setActiveTab('calculator');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to calculate Black-Scholes prices');
@@ -27,6 +25,14 @@ function App() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleBatchResults = (results: BatchCalculationResponse) => {
+    // For batch results, show the first result or handle differently
+    if (results.results.length > 0) {
+      setCurrentResult(results.results[0]);
+    }
+    alert(`Batch calculation complete: ${results.successful} successful, ${results.failed} failed`);
   };
 
   return (
@@ -54,10 +60,9 @@ function App() {
       <main className="app-main">
         {activeTab === 'calculator' && (
           <div className="calculator-tab">
-            <CalculatorForm onSubmit={handleCalculate} isLoading={isLoading} />
+            <CalculatorForm onSubmit={handleCalculate} onBatchResults={handleBatchResults} isLoading={isLoading} />
             {error && <div className="error-message">{error}</div>}
             <ResultsDisplay result={currentResult} />
-            <BatchCalculator />
           </div>
         )}
 

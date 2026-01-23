@@ -150,112 +150,122 @@ export const CalculatorForm: React.FC<CalculatorFormProps> = ({
           </p>
         </div>
 
-        <div className="calculator-rows">
-          {rows.map((row, rowIndex) => (
-            <div key={rowIndex} className="calculator-row">
-              {rowIndex > 0 && (
-                <button
-                  type="button"
-                  onClick={() => removeRow(rowIndex)}
-                  className="remove-row-btn"
-                  title="Remove row"
-                >
-                  ×
-                </button>
-              )}
-              <div className="form-grid-compact">
-                <div className="form-group">
-                  <label>S<sub>0</sub></label>
-                  <input
-                    type="number"
-                    value={row.s0}
-                    onChange={(e) => handleChange(rowIndex, 's0', e.target.value)}
-                    step="0.01"
-                    min="0.01"
-                    required
-                  />
-                  {errors[rowIndex]?.s0 && <span className="error">{errors[rowIndex].s0}</span>}
-                </div>
-
-                <div className="form-group">
-                  <label>X</label>
-                  <input
-                    type="number"
-                    value={row.x}
-                    onChange={(e) => handleChange(rowIndex, 'x', e.target.value)}
-                    step="0.01"
-                    min="0.01"
-                    required
-                  />
-                  {errors[rowIndex]?.x && <span className="error">{errors[rowIndex].x}</span>}
-                </div>
-
-                <div className="form-group">
-                  <label>t</label>
-                  <input
-                    type="number"
-                    value={row.t}
-                    onChange={(e) => handleChange(rowIndex, 't', e.target.value)}
-                    step="0.01"
-                    min="0.01"
-                    required
-                  />
-                  {errors[rowIndex]?.t && <span className="error">{errors[rowIndex].t}</span>}
-                </div>
-
-                <div className="form-group">
-                  <label>r</label>
-                  <div className="input-with-symbol">
+        <div className="calculator-table-container">
+          <table className="calculator-table">
+            <thead>
+              <tr>
+                <th></th>
+                <th>S<sub>0</sub></th>
+                <th>X</th>
+                <th>t (years)</th>
+                <th>r (%)</th>
+                <th>d (%)</th>
+                <th>v (%)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row, rowIndex) => (
+                <tr key={rowIndex}>
+                  <td className="row-actions">
+                    {rowIndex > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => removeRow(rowIndex)}
+                        className="remove-row-btn-table"
+                        title="Remove row"
+                      >
+                        ×
+                      </button>
+                    )}
+                  </td>
+                  <td>
                     <input
                       type="number"
-                      value={row.r}
-                      onChange={(e) => handleChange(rowIndex, 'r', e.target.value)}
+                      value={row.s0}
+                      onChange={(e) => handleChange(rowIndex, 's0', e.target.value)}
                       step="0.01"
-                      min="0"
-                      max="100"
+                      min="0.01"
                       required
+                      className="table-input"
                     />
-                    <span className="input-symbol">%</span>
-                  </div>
-                  {errors[rowIndex]?.r && <span className="error">{errors[rowIndex].r}</span>}
-                </div>
-
-                <div className="form-group">
-                  <label>d</label>
-                  <div className="input-with-symbol">
+                    {errors[rowIndex]?.s0 && <div className="error-inline">{errors[rowIndex].s0}</div>}
+                  </td>
+                  <td>
                     <input
                       type="number"
-                      value={row.d}
-                      onChange={(e) => handleChange(rowIndex, 'd', e.target.value)}
+                      value={row.x}
+                      onChange={(e) => handleChange(rowIndex, 'x', e.target.value)}
                       step="0.01"
-                      min="0"
-                      max="100"
+                      min="0.01"
                       required
+                      className="table-input"
                     />
-                    <span className="input-symbol">%</span>
-                  </div>
-                  {errors[rowIndex]?.d && <span className="error">{errors[rowIndex].d}</span>}
-                </div>
-
-                <div className="form-group">
-                  <label>v</label>
-                  <div className="input-with-symbol">
+                    {errors[rowIndex]?.x && <div className="error-inline">{errors[rowIndex].x}</div>}
+                  </td>
+                  <td>
                     <input
                       type="number"
-                      value={row.v}
-                      onChange={(e) => handleChange(rowIndex, 'v', e.target.value)}
+                      value={row.t}
+                      onChange={(e) => handleChange(rowIndex, 't', e.target.value)}
                       step="0.01"
-                      min="0"
-                      max="100"
+                      min="0.01"
                       required
+                      className="table-input"
                     />
-                    <span className="input-symbol">%</span>
-                  </div>
-                  {errors[rowIndex]?.v && <span className="error">{errors[rowIndex].v}</span>}
-                </div>
-              </div>
-            </div>
-          ))}
+                    {errors[rowIndex]?.t && <div className="error-inline">{errors[rowIndex].t}</div>}
+                  </td>
+                  <td>
+                    <div className="input-with-symbol-table">
+                      <input
+                        type="number"
+                        value={row.r}
+                        onChange={(e) => handleChange(rowIndex, 'r', e.target.value)}
+                        step="0.01"
+                        min="0"
+                        max="100"
+                        required
+                        className="table-input"
+                      />
+                      <span className="input-symbol-table">%</span>
+                    </div>
+                    {errors[rowIndex]?.r && <div className="error-inline">{errors[rowIndex].r}</div>}
+                  </td>
+                  <td>
+                    <div className="input-with-symbol-table">
+                      <input
+                        type="number"
+                        value={row.d}
+                        onChange={(e) => handleChange(rowIndex, 'd', e.target.value)}
+                        step="0.01"
+                        min="0"
+                        max="100"
+                        required
+                        className="table-input"
+                      />
+                      <span className="input-symbol-table">%</span>
+                    </div>
+                    {errors[rowIndex]?.d && <div className="error-inline">{errors[rowIndex].d}</div>}
+                  </td>
+                  <td>
+                    <div className="input-with-symbol-table">
+                      <input
+                        type="number"
+                        value={row.v}
+                        onChange={(e) => handleChange(rowIndex, 'v', e.target.value)}
+                        step="0.01"
+                        min="0"
+                        max="100"
+                        required
+                        className="table-input"
+                      />
+                      <span className="input-symbol-table">%</span>
+                    </div>
+                    {errors[rowIndex]?.v && <div className="error-inline">{errors[rowIndex].v}</div>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
 
         <div className="form-actions">
@@ -267,60 +277,6 @@ export const CalculatorForm: React.FC<CalculatorFormProps> = ({
           </button>
         </div>
       </form>
-
-      <div className="info-panels-container">
-        <section className="inputs-info-panel">
-          <h3>Parameter Definitions</h3>
-          <ul>
-            <li>
-              <strong>S₀</strong> – Current share price of the underlying.
-            </li>
-            <li>
-              <strong>X</strong> – Strike (exercise) price of the option.
-            </li>
-            <li>
-              <strong>t</strong> – Time to maturity in years (e.g., 3 months ≈
-              0.25).
-            </li>
-            <li>
-              <strong>r</strong> – Continuously compounded risk-free rate (as %).
-            </li>
-            <li>
-              <strong>d</strong> – Continuous dividend yield on the underlying (as %).
-            </li>
-            <li>
-              <strong>v</strong> – Annualised volatility of the underlying
-              return (as %).
-            </li>
-          </ul>
-        </section>
-
-        <section className="formula-panel">
-          <h3>Black-Scholes Formula</h3>
-          <div className="formula-content">
-            <div className="formula-section">
-              <h4>Call Option:</h4>
-              <div className="formula">
-                C = S₀e<sup>-dt</sup>N(d₁) - Xe<sup>-rt</sup>N(d₂)
-              </div>
-            </div>
-            <div className="formula-section">
-              <h4>Put Option:</h4>
-              <div className="formula">
-                P = Xe<sup>-rt</sup>N(-d₂) - S₀e<sup>-dt</sup>N(-d₁)
-              </div>
-            </div>
-            <div className="formula-section">
-              <h4>Where:</h4>
-              <div className="formula-intermediates">
-                <div>d₁ = [ln(S₀/X) + (r - d + ½v²)t] / (v√t)</div>
-                <div>d₂ = d₁ - v√t</div>
-                <div className="formula-note">N(x) = cumulative standard normal distribution</div>
-              </div>
-            </div>
-          </div>
-        </section>
-      </div>
     </>
   );
 };

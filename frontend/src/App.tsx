@@ -63,6 +63,59 @@ function App() {
             <CalculatorForm onSubmit={handleCalculate} onBatchResults={handleBatchResults} isLoading={isLoading} />
             {error && <div className="error-message">{error}</div>}
             <ResultsDisplay result={currentResult} />
+            <div className="info-panels-container">
+              <section className="inputs-info-panel">
+                <h3>Parameter Definitions</h3>
+                <ul>
+                  <li>
+                    <strong>S₀</strong> – Current share price of the underlying.
+                  </li>
+                  <li>
+                    <strong>X</strong> – Strike (exercise) price of the option.
+                  </li>
+                  <li>
+                    <strong>t</strong> – Time to maturity in years (e.g., 3 months ≈
+                    0.25).
+                  </li>
+                  <li>
+                    <strong>r</strong> – Continuously compounded risk-free rate (as %).
+                  </li>
+                  <li>
+                    <strong>d</strong> – Continuous dividend yield on the underlying (as %).
+                  </li>
+                  <li>
+                    <strong>v</strong> – Annualised volatility of the underlying
+                    return (as %).
+                  </li>
+                </ul>
+              </section>
+
+              <section className="formula-panel">
+                <h3>Black-Scholes Formula</h3>
+                <div className="formula-content">
+                  <div className="formula-section">
+                    <h4>Call Option:</h4>
+                    <div className="formula">
+                      C = S₀e<sup>-dt</sup>N(d₁) - Xe<sup>-rt</sup>N(d₂)
+                    </div>
+                  </div>
+                  <div className="formula-section">
+                    <h4>Put Option:</h4>
+                    <div className="formula">
+                      P = Xe<sup>-rt</sup>N(-d₂) - S₀e<sup>-dt</sup>N(-d₁)
+                    </div>
+                  </div>
+                  <div className="formula-section">
+                    <h4>Where:</h4>
+                    <div className="formula-intermediates">
+                      <div>d₁ = [ln(S₀/X) + (r - d + ½v²)t] / (v√t)</div>
+                      <div>d₂ = d₁ - v√t</div>
+                      <div className="formula-note">N(x) = cumulative standard normal distribution</div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
           </div>
         )}
 

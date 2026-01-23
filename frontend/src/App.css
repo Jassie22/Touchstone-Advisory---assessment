@@ -69,6 +69,8 @@
   display: flex;
   flex-direction: column;
   gap: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 .calculator-form {
@@ -145,33 +147,59 @@
   gap: 1.5rem;
 }
 
-.form-grid-compact {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 0.75rem;
-  align-items: start;
-}
-
-.calculator-rows {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.calculator-row {
-  position: relative;
-  padding: 1.25rem;
-  background-color: #f8fafc;
-  border-radius: 8px;
+.calculator-table-container {
+  overflow-x: auto;
+  margin-bottom: 1.5rem;
   border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+  background: white;
 }
 
-.remove-row-btn {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
+.calculator-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.calculator-table thead {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.calculator-table th {
+  padding: 1rem 0.75rem;
+  text-align: left;
+  font-weight: 600;
+  color: #334155;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.calculator-table th:first-child {
+  width: 40px;
+  text-align: center;
+}
+
+.calculator-table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: top;
+}
+
+.calculator-table tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+.calculator-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.row-actions {
+  text-align: center;
+  width: 40px;
+}
+
+.remove-row-btn-table {
   background: none;
   border: none;
   color: #e74c3c;
@@ -179,11 +207,55 @@
   cursor: pointer;
   padding: 0.25rem 0.5rem;
   line-height: 1;
-  transition: color 0.3s ease;
+  transition: all 0.3s ease;
+  border-radius: 4px;
 }
 
-.remove-row-btn:hover {
+.remove-row-btn-table:hover {
   color: #c0392b;
+  background-color: #fee;
+}
+
+.table-input {
+  width: 100%;
+  padding: 0.6rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  min-width: 80px;
+}
+
+.table-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.input-with-symbol-table {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-with-symbol-table .table-input {
+  padding-right: 2rem;
+}
+
+.input-symbol-table {
+  position: absolute;
+  right: 0.75rem;
+  color: #64748b;
+  font-weight: 500;
+  font-size: 0.85rem;
+  pointer-events: none;
+}
+
+.error-inline {
+  color: #e74c3c;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  line-height: 1.2;
 }
 
 .form-actions {

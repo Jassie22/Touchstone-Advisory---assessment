@@ -34,11 +34,16 @@ export const PriceVisualization: React.FC = () => {
     .reverse()
     .map((calc, index) => ({
       index: index + 1,
+      timestamp: new Date(calc.created_at).getTime(),
       time: formatDate(calc.created_at),
       callPrice: parseFloat(calc.call_price.toFixed(4)),
       putPrice: parseFloat(calc.put_price.toFixed(4)),
       stockPrice: calc.s0,
       strikePrice: calc.x,
+      timeToMaturity: calc.t,
+      volatility: calc.v,
+      interestRate: calc.r,
+      dividendYield: calc.d,
     }));
 
   if (loading) {
@@ -74,18 +79,44 @@ export const PriceVisualization: React.FC = () => {
 
       <div className="chart-container">
         <ResponsiveContainer width="100%" height={400}>
-          <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+          <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 60 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis
-              dataKey="index"
-              label={{ value: 'Calculation Number', position: 'insideBottom', offset: -5 }}
+              dataKey="timestamp"
+              type="number"
+              scale="time"
+              domain={['dataMin', 'dataMax']}
+              tickFormatter={(value) => {
+                const date = new Date(value);
+                return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+              }}
+              angle={-45}
+              textAnchor="end"
+              height={80}
+              label={{ value: 'Time', position: 'insideBottom', offset: -10 }}
             />
             <YAxis
               label={{ value: 'Price ($)', angle: -90, position: 'insideLeft' }}
             />
             <Tooltip
               formatter={(value: number, name: string) => [`$${value.toFixed(4)}`, name]}
-              labelFormatter={(label) => `Calculation #${label}`}
+              labelFormatter={(label: number) => {
+                const dataPoint = chartData.find(d => d.timestamp === label);
+                if (dataPoint) {
+                  return (
+                    <div>
+                      <div><strong>{dataPoint.time}</strong></div>
+                      <div style={{ fontSize: '0.85em', marginTop: '4px', color: '#666' }}>
+                        S₀: ${dataPoint.stockPrice.toFixed(2)} | X: ${dataPoint.strikePrice.toFixed(2)} | t: {dataPoint.timeToMaturity.toFixed(2)}y
+                        <br />
+                        r: {(dataPoint.interestRate * 100).toFixed(2)}% | d: {(dataPoint.dividendYield * 100).toFixed(2)}% | v: {(dataPoint.volatility * 100).toFixed(2)}%
+                      </div>
+                    </div>
+                  );
+                }
+                return `Time: ${new Date(label).toLocaleString()}`;
+              }}
+              contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.95)', border: '1px solid #ccc', borderRadius: '4px' }}
             />
             <Legend />
             <Line
@@ -107,6 +138,15 @@ export const PriceVisualization: React.FC = () => {
           </LineChart>
         </ResponsiveContainer>
       </div>
+      
+      {history.length > 0 && (
+        <div className="visualization-note">
+          <p>
+            <strong>Tip:</strong> This chart shows option prices over time. For more interesting trends, try calculating options with different parameters 
+            (e.g., varying stock prices, volatility, or time to maturity). Hover over data points to see the input parameters.
+          </p>
+        </div>
+      )}
 
       <div className="visualization-stats">
         <div className="stat-card">

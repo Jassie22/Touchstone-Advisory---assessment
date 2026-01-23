@@ -697,3 +697,18 @@
   border-radius: 4px;
   cursor: pointer;
 }
+
+.visualization-note {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background-color: #f0f4ff;
+  border-left: 4px solid #667eea;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.visualization-note p {
+  margin: 0;
+  line-height: 1.5;
+}

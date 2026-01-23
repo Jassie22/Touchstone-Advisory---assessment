@@ -87,6 +87,9 @@ function App() {
                     <strong>v</strong> – Annualised volatility of the underlying
                     return (as %).
                   </li>
+                  <li>
+                    <strong>N(x)</strong> – Cumulative standard normal distribution function.
+                  </li>
                 </ul>
               </section>
 
@@ -110,7 +113,6 @@ function App() {
                     <div className="formula-intermediates">
                       <div>d₁ = [ln(S₀/X) + (r - d + ½v²)t] / (v√t)</div>
                       <div>d₂ = d₁ - v√t</div>
-                      <div className="formula-note">N(x) = cumulative standard normal distribution</div>
                     </div>
                   </div>
                 </div>

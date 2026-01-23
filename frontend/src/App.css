@@ -5,21 +5,25 @@
 }
 
 .app-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
   color: white;
-  padding: 2rem;
+  padding: 2.5rem 2rem;
   text-align: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-bottom: 3px solid #1e40af;
 }
 
 .app-header h1 {
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
+  font-size: 2.25rem;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+  letter-spacing: -0.5px;
 }
 
 .subtitle {
-  font-size: 1rem;
-  opacity: 0.9;
+  font-size: 1.05rem;
+  opacity: 0.95;
+  font-weight: 300;
 }
 
 .tab-navigation {
@@ -48,8 +52,9 @@
 }
 
 .tab-button.active {
-  color: #667eea;
-  border-bottom-color: #667eea;
+  color: #1e40af;
+  border-bottom-color: #1e40af;
+  font-weight: 600;
 }
 
 .app-main {
@@ -68,9 +73,10 @@
 
 .calculator-form {
   background: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 2.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e5e7eb;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -155,10 +161,11 @@
 
 .calculator-row {
   position: relative;
-  padding: 1rem;
-  background-color: #f8f9fa;
-  border-radius: 6px;
-  border: 1px solid #e0e0e0;
+  padding: 1.25rem;
+  background-color: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .remove-row-btn {
@@ -231,7 +238,8 @@
 
 .form-group input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .input-with-symbol {
@@ -318,12 +326,13 @@
 }
 
 .inputs-info-panel {
-  padding: 1.25rem 1.5rem;
-  background-color: #f8fafc;
-  border-radius: 8px;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 10px;
   border: 1px solid #e2e8f0;
   font-size: 0.9rem;
-  color: #444;
+  color: #334155;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
 }
 
 .inputs-info-panel h3 {
@@ -343,12 +352,13 @@
 }
 
 .formula-panel {
-  padding: 1.25rem 1.5rem;
-  background-color: #fff9e6;
-  border-radius: 8px;
-  border: 1px solid #ffe066;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-radius: 10px;
+  border: 1px solid #fbbf24;
   font-size: 0.9rem;
-  color: #444;
+  color: #78350f;
+  box-shadow: 0 2px 4px rgba(251, 191, 36, 0.15);
 }
 
 .formula-panel h3 {
@@ -425,9 +435,10 @@
 
 .results-display {
   background: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 2.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e5e7eb;
 }
 
 .results-display h2 {
@@ -450,13 +461,15 @@
 }
 
 .result-card.call-price {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   color: white;
+  box-shadow: 0 4px 8px rgba(30, 64, 175, 0.2);
 }
 
 .result-card.put-price {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
   color: white;
+  box-shadow: 0 4px 8px rgba(124, 58, 237, 0.2);
 }
 
 .result-card h3 {
@@ -516,9 +529,10 @@
 
 .history-view {
   background: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 2.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e5e7eb;
 }
 
 .history-header {
@@ -545,32 +559,40 @@
 
 .copy-button {
   padding: 0.5rem 1rem;
-  background-color: #667eea;
+  background-color: #3b82f6;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 0.9rem;
-  transition: background-color 0.3s ease;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
 }
 
 .copy-button:hover {
-  background-color: #5568d3;
+  background-color: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
 }
 
 .export-button {
   padding: 0.5rem 1rem;
-  background-color: #27ae60;
+  background-color: #059669;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 0.9rem;
-  transition: background-color 0.3s ease;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(5, 150, 105, 0.2);
 }
 
 .export-button:hover {
-  background-color: #229954;
+  background-color: #047857;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(5, 150, 105, 0.3);
 }
 
 .dropdown-menu {
@@ -684,17 +706,21 @@
 
 .refresh-button {
   padding: 0.5rem 1rem;
-  background-color: #667eea;
+  background-color: #6b7280;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 0.9rem;
-  transition: background-color 0.3s ease;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(107, 114, 128, 0.2);
 }
 
 .refresh-button:hover {
-  background-color: #5568d3;
+  background-color: #4b5563;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(107, 114, 128, 0.3);
 }
 
 .history-table-container {
@@ -729,7 +755,7 @@
 
 .price-cell {
   font-weight: 600;
-  color: #667eea;
+  color: #1e40af;
 }
 
 .history-loading,

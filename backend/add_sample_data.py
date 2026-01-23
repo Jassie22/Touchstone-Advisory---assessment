@@ -8,11 +8,26 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 # Add parent directory to path to import app modules
-sys.path.insert(0, str(Path(__file__).parent))
+backend_dir = Path(__file__).parent
+sys.path.insert(0, str(backend_dir))
 
-from app.database import SessionLocal
-from app.models import Calculation
+# Import directly to avoid importing FastAPI through app.__init__
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+# Import models and calculation logic directly
+from app.models import Calculation, Base
 from app.black_scholes import calculate_call_put
+
+# Create database connection (same as in database.py)
+SQLALCHEMY_DATABASE_URL = "sqlite:///./calculations.db"
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# Ensure tables exist
+Base.metadata.create_all(bind=engine)
 
 def generate_sample_data():
     """Generate 100 random Black-Scholes calculations."""

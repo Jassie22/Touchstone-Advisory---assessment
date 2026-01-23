@@ -23,8 +23,8 @@ export async function calculateBlackScholes(
   return handleResponse<CalculationResult>(response);
 }
 
-export async function getCalculationHistory(): Promise<CalculationSummary[]> {
-  const response = await fetch(`${API_BASE_URL}/api/history`);
+export async function getCalculationHistory(skip: number = 0, limit: number = 10): Promise<CalculationSummary[]> {
+  const response = await fetch(`${API_BASE_URL}/api/history?skip=${skip}&limit=${limit}`);
   return handleResponse<CalculationSummary[]>(response);
 }
 

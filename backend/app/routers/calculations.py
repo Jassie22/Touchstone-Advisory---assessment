@@ -64,13 +64,25 @@ def create_calculation(
 
 
 @router.get("/history", response_model=List[schemas.CalculationSummary])
-def list_calculations(db: Session = Depends(get_db)) -> List[schemas.CalculationSummary]:
+def list_calculations(
+    skip: int = 0,
+    limit: int = 10,
+    db: Session = Depends(get_db)
+) -> List[schemas.CalculationSummary]:
     calculations = (
         db.query(models.Calculation)
         .order_by(models.Calculation.created_at.desc())
+        .offset(skip)
+        .limit(limit)
         .all()
     )
     return calculations
+
+
+@router.get("/history/count")
+def get_history_count(db: Session = Depends(get_db)):
+    count = db.query(models.Calculation).count()
+    return {"total": count}
 
 
 @router.get(

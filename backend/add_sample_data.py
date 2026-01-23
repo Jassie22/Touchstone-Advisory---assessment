@@ -1,0 +1,71 @@
+"""
+Script to add 100 random sample calculations to the database.
+Run from the backend directory: python add_sample_data.py
+"""
+import random
+import sys
+from datetime import datetime, timedelta
+from pathlib import Path
+
+# Add parent directory to path to import app modules
+sys.path.insert(0, str(Path(__file__).parent))
+
+from app.database import SessionLocal
+from app.models import Calculation
+from app.black_scholes import calculate_call_put
+
+def generate_sample_data():
+    """Generate 100 random Black-Scholes calculations."""
+    db = SessionLocal()
+    
+    try:
+        # Generate 100 random calculations
+        for i in range(100):
+            # Random parameters within reasonable ranges
+            s0 = round(random.uniform(50, 200), 2)  # Stock price: $50-$200
+            x = round(random.uniform(50, 200), 2)   # Strike price: $50-$200
+            t = round(random.uniform(0.1, 5.0), 2)  # Time: 0.1-5 years
+            r = round(random.uniform(0.01, 0.10), 4)  # Interest rate: 1%-10%
+            d = round(random.uniform(0.0, 0.05), 4)   # Dividend yield: 0%-5%
+            v = round(random.uniform(0.10, 0.50), 4)  # Volatility: 10%-50%
+            
+            try:
+                # Calculate prices
+                call_price, put_price, d1, d2 = calculate_call_put(s0, x, t, r, d, v)
+                
+                # Create calculation with random timestamp (within last 30 days)
+                days_ago = random.randint(0, 30)
+                created_at = datetime.utcnow() - timedelta(days=days_ago, hours=random.randint(0, 23))
+                
+                calc = Calculation(
+                    s0=s0,
+                    x=x,
+                    t=t,
+                    r=r,
+                    d=d,
+                    v=v,
+                    call_price=call_price,
+                    put_price=put_price,
+                    created_at=created_at
+                )
+                
+                db.add(calc)
+                print(f"Added calculation {i+1}/100: S₀=${s0}, X=${x}, Call=${call_price:.4f}, Put=${put_price:.4f}")
+                
+            except ValueError as e:
+                print(f"Skipping invalid calculation {i+1}: {e}")
+                continue
+        
+        db.commit()
+        print("\n✅ Successfully added 100 sample calculations to the database!")
+        
+    except Exception as e:
+        db.rollback()
+        print(f"\n❌ Error: {e}")
+        raise
+    finally:
+        db.close()
+
+if __name__ == "__main__":
+    print("Generating 100 random sample calculations...\n")
+    generate_sample_data()

@@ -2,47 +2,41 @@ import React, { useEffect, useState } from 'react';
 import { CalculationSummary } from '../types';
 import { getCalculationHistory } from '../services/api';
 
-type ColumnKey = 'date' | 's0' | 'x' | 't' | 'r' | 'd' | 'v' | 'call_price' | 'put_price';
 type ExportFormat = 'csv' | 'sql' | 'json';
-
-interface ColumnOption {
-  key: ColumnKey;
-  label: string;
-  selected: boolean;
-}
 
 export const HistoryView: React.FC = () => {
   const [history, setHistory] = useState<CalculationSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showExportModal, setShowExportModal] = useState(false);
-  const [columns, setColumns] = useState<ColumnOption[]>([
-    { key: 'date', label: 'Date', selected: true },
-    { key: 's0', label: 'S₀', selected: true },
-    { key: 'x', label: 'X', selected: true },
-    { key: 't', label: 't (years)', selected: true },
-    { key: 'r', label: 'r (%)', selected: true },
-    { key: 'd', label: 'd (%)', selected: true },
-    { key: 'v', label: 'v (%)', selected: true },
-    { key: 'call_price', label: 'Call Price', selected: true },
-    { key: 'put_price', label: 'Put Price', selected: true },
-  ]);
+  const [showExportDropdown, setShowExportDropdown] = useState(false);
+  const [showCopyDropdown, setShowCopyDropdown] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [totalCount, setTotalCount] = useState(0);
 
   useEffect(() => {
     loadHistory();
-  }, []);
+  }, [currentPage, itemsPerPage]);
 
   const loadHistory = async () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await getCalculationHistory();
+      const skip = (currentPage - 1) * itemsPerPage;
+      const data = await getCalculationHistory(skip, itemsPerPage);
       setHistory(data);
+      const count = await getHistoryCount();
+      setTotalCount(count.total);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load history');
     } finally {
       setLoading(false);
     }
+  };
+
+  const getHistoryCount = async (): Promise<{ total: number }> => {
+    const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8000'}/api/history/count`);
+    return response.json();
   };
 
   const formatCurrency = (value: number): string => {
@@ -53,23 +47,7 @@ export const HistoryView: React.FC = () => {
     return new Date(dateString).toLocaleString();
   };
 
-  const toggleColumn = (key: ColumnKey) => {
-    setColumns(columns.map(col => 
-      col.key === key ? { ...col, selected: !col.selected } : col
-    ));
-  };
-
-  const selectAllColumns = () => {
-    setColumns(columns.map(col => ({ ...col, selected: true })));
-  };
-
-  const deselectAllColumns = () => {
-    setColumns(columns.map(col => ({ ...col, selected: false })));
-  };
-
-  const getSelectedColumns = () => columns.filter(col => col.selected);
-
-  const formatValue = (calc: CalculationSummary, key: ColumnKey): string => {
+  const formatValue = (calc: CalculationSummary, key: string): string => {
     switch (key) {
       case 'date':
         return formatDate(calc.created_at);
@@ -95,17 +73,21 @@ export const HistoryView: React.FC = () => {
   };
 
   const generateCSV = (): string => {
-    const selectedCols = getSelectedColumns();
-    if (selectedCols.length === 0) return '';
-
-    const headers = selectedCols.map(col => col.label);
+    const headers = ['Date', 'S₀', 'X', 't (years)', 'r (%)', 'd (%)', 'v (%)', 'Call Price', 'Put Price'];
     const csvRows = [headers.join(',')];
 
     history.forEach(calc => {
-      const row = selectedCols.map(col => {
-        const value = formatValue(calc, col.key);
-        return col.key === 'date' ? `"${value}"` : value;
-      });
+      const row = [
+        `"${formatValue(calc, 'date')}"`,
+        formatValue(calc, 's0'),
+        formatValue(calc, 'x'),
+        formatValue(calc, 't'),
+        formatValue(calc, 'r'),
+        formatValue(calc, 'd'),
+        formatValue(calc, 'v'),
+        formatValue(calc, 'call_price'),
+        formatValue(calc, 'put_price'),
+      ];
       csvRows.push(row.join(','));
     });
 
@@ -113,31 +95,19 @@ export const HistoryView: React.FC = () => {
   };
 
   const generateSQL = (): string => {
-    const selectedCols = getSelectedColumns();
-    if (selectedCols.length === 0) return '';
-
-    const columnNames = selectedCols.map(col => {
-      const sqlName = col.key === 'date' ? 'created_at' : 
-                     col.key === 's0' ? 's0' :
-                     col.key === 'x' ? 'x' :
-                     col.key === 't' ? 't' :
-                     col.key === 'r' ? 'r' :
-                     col.key === 'd' ? 'd' :
-                     col.key === 'v' ? 'v' :
-                     col.key === 'call_price' ? 'call_price' :
-                     'put_price';
-      return sqlName;
-    }).join(', ');
-
-    let sql = `INSERT INTO calculations (${columnNames}) VALUES\n`;
+    let sql = `INSERT INTO calculations (s0, x, t, r, d, v, call_price, put_price, created_at) VALUES\n`;
     const values = history.map((calc, idx) => {
-      const rowValues = selectedCols.map(col => {
-        const value = formatValue(calc, col.key);
-        if (col.key === 'date') {
-          return `'${new Date(calc.created_at).toISOString()}'`;
-        }
-        return value;
-      }).join(', ');
+      const rowValues = [
+        formatValue(calc, 's0'),
+        formatValue(calc, 'x'),
+        formatValue(calc, 't'),
+        (calc.r).toFixed(6),
+        (calc.d).toFixed(6),
+        (calc.v).toFixed(6),
+        formatValue(calc, 'call_price'),
+        formatValue(calc, 'put_price'),
+        `'${new Date(calc.created_at).toISOString()}'`,
+      ].join(', ');
       return `  (${rowValues})${idx < history.length - 1 ? ',' : ';'}`;
     });
 
@@ -145,20 +115,17 @@ export const HistoryView: React.FC = () => {
   };
 
   const generateJSON = (): string => {
-    const selectedCols = getSelectedColumns();
-    if (selectedCols.length === 0) return '';
-
-    const data = history.map(calc => {
-      const obj: any = {};
-      selectedCols.forEach(col => {
-        const value = formatValue(calc, col.key);
-        obj[col.label] = col.key === 'date' ? value : 
-                        (col.key === 't' ? parseFloat(value) :
-                        (col.key === 'r' || col.key === 'd' || col.key === 'v' ? parseFloat(value) :
-                        parseFloat(value)));
-      });
-      return obj;
-    });
+    const data = history.map(calc => ({
+      'Date': formatValue(calc, 'date'),
+      'S₀': parseFloat(formatValue(calc, 's0')),
+      'X': parseFloat(formatValue(calc, 'x')),
+      't (years)': parseFloat(formatValue(calc, 't')),
+      'r (%)': parseFloat(formatValue(calc, 'r')),
+      'd (%)': parseFloat(formatValue(calc, 'd')),
+      'v (%)': parseFloat(formatValue(calc, 'v')),
+      'Call Price': parseFloat(formatValue(calc, 'call_price')),
+      'Put Price': parseFloat(formatValue(calc, 'put_price')),
+    }));
 
     return JSON.stringify(data, null, 2);
   };
@@ -166,6 +133,7 @@ export const HistoryView: React.FC = () => {
   const copyToClipboard = (content: string, format: string) => {
     navigator.clipboard.writeText(content).then(() => {
       alert(`${format.toUpperCase()} copied to clipboard!`);
+      setShowCopyDropdown(false);
     }).catch(() => {
       alert('Failed to copy to clipboard');
     });
@@ -181,15 +149,26 @@ export const HistoryView: React.FC = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    setShowExportDropdown(false);
   };
 
-  const handleExport = (format: ExportFormat, action: 'download' | 'copy') => {
-    const selectedCols = getSelectedColumns();
-    if (selectedCols.length === 0) {
-      alert('Please select at least one column to export.');
-      return;
+  const handleCopy = (format: ExportFormat) => {
+    let content = '';
+    switch (format) {
+      case 'csv':
+        content = generateCSV();
+        break;
+      case 'sql':
+        content = generateSQL();
+        break;
+      case 'json':
+        content = generateJSON();
+        break;
     }
+    copyToClipboard(content, format);
+  };
 
+  const handleExport = (format: ExportFormat) => {
     const timestamp = new Date().toISOString().split('T')[0];
     let content = '';
     let filename = '';
@@ -213,15 +192,12 @@ export const HistoryView: React.FC = () => {
         break;
     }
 
-    if (action === 'copy') {
-      copyToClipboard(content, format);
-    } else {
-      downloadFile(content, filename, mimeType);
-      setShowExportModal(false);
-    }
+    downloadFile(content, filename, mimeType);
   };
 
-  if (loading) {
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
+
+  if (loading && history.length === 0) {
     return <div className="history-loading">Loading history...</div>;
   }
 
@@ -243,12 +219,58 @@ export const HistoryView: React.FC = () => {
       <div className="history-header">
         <h2>Calculation History</h2>
         <div className="history-actions">
-          <button onClick={() => setShowExportModal(true)} className="export-button">
-            Export Data
-          </button>
+          <div className="dropdown-container">
+            <button 
+              onClick={() => { setShowCopyDropdown(!showCopyDropdown); setShowExportDropdown(false); }} 
+              className="copy-button"
+            >
+              Copy ↓
+            </button>
+            {showCopyDropdown && (
+              <div className="dropdown-menu">
+                <button onClick={() => handleCopy('csv')}>Copy as CSV</button>
+                <button onClick={() => handleCopy('sql')}>Copy as SQL</button>
+                <button onClick={() => handleCopy('json')}>Copy as JSON</button>
+              </div>
+            )}
+          </div>
+          <div className="dropdown-container">
+            <button 
+              onClick={() => { setShowExportDropdown(!showExportDropdown); setShowCopyDropdown(false); }} 
+              className="export-button"
+            >
+              Export ↓
+            </button>
+            {showExportDropdown && (
+              <div className="dropdown-menu">
+                <button onClick={() => handleExport('csv')}>Export as CSV</button>
+                <button onClick={() => handleExport('sql')}>Export as SQL</button>
+                <button onClick={() => handleExport('json')}>Export as JSON</button>
+              </div>
+            )}
+          </div>
           <button onClick={loadHistory} className="refresh-button">Refresh</button>
         </div>
       </div>
+
+      <div className="history-controls">
+        <div className="items-per-page">
+          <label>Items per page:</label>
+          <select 
+            value={itemsPerPage} 
+            onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+            className="page-size-select"
+          >
+            <option value={10}>10</option>
+            <option value={100}>100</option>
+            <option value={500}>500</option>
+          </select>
+        </div>
+        <div className="pagination-info">
+          Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, totalCount)} of {totalCount} results
+        </div>
+      </div>
+
       <div className="history-table-container">
         <table className="history-table">
           <thead>
@@ -282,81 +304,25 @@ export const HistoryView: React.FC = () => {
         </table>
       </div>
 
-      {showExportModal && (
-        <div className="modal-overlay" onClick={() => setShowExportModal(false)}>
-          <div className="export-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>Export Data</h3>
-              <button className="modal-close" onClick={() => setShowExportModal(false)}>×</button>
-            </div>
-            <div className="modal-content">
-              <p>Select columns to export:</p>
-              <div className="export-column-actions">
-                <button type="button" onClick={selectAllColumns} className="select-all-button">
-                  Select All
-                </button>
-                <button type="button" onClick={deselectAllColumns} className="deselect-all-button">
-                  Deselect All
-                </button>
-              </div>
-              <div className="export-columns">
-                {columns.map((col) => (
-                  <label key={col.key} className="export-column-checkbox">
-                    <input
-                      type="checkbox"
-                      checked={col.selected}
-                      onChange={() => toggleColumn(col.key)}
-                    />
-                    <span>{col.label}</span>
-                  </label>
-                ))}
-              </div>
-
-              <div className="export-format-section">
-                <h4>Export Format:</h4>
-                <div className="export-format-options">
-                  <div className="format-group">
-                    <h5>CSV</h5>
-                    <div className="format-actions">
-                      <button onClick={() => handleExport('csv', 'download')} className="format-button">
-                        Download CSV
-                      </button>
-                      <button onClick={() => handleExport('csv', 'copy')} className="format-button copy-button">
-                        Copy CSV
-                      </button>
-                    </div>
-                  </div>
-                  <div className="format-group">
-                    <h5>SQL</h5>
-                    <div className="format-actions">
-                      <button onClick={() => handleExport('sql', 'download')} className="format-button">
-                        Download SQL
-                      </button>
-                      <button onClick={() => handleExport('sql', 'copy')} className="format-button copy-button">
-                        Copy SQL
-                      </button>
-                    </div>
-                  </div>
-                  <div className="format-group">
-                    <h5>JSON</h5>
-                    <div className="format-actions">
-                      <button onClick={() => handleExport('json', 'download')} className="format-button">
-                        Download JSON
-                      </button>
-                      <button onClick={() => handleExport('json', 'copy')} className="format-button copy-button">
-                        Copy JSON
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button onClick={() => setShowExportModal(false)} className="cancel-button">
-                Close
-              </button>
-            </div>
-          </div>
+      {totalPages > 1 && (
+        <div className="pagination">
+          <button 
+            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+            disabled={currentPage === 1}
+            className="pagination-button"
+          >
+            Previous
+          </button>
+          <span className="pagination-page-info">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button 
+            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+            disabled={currentPage === totalPages}
+            className="pagination-button"
+          >
+            Next
+          </button>
         </div>
       )}
     </div>

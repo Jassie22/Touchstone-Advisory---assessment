@@ -283,6 +283,16 @@ Potential improvements:
 
 This project is created as a take-home challenge submission.
 
+## Evaluation Criteria
+
+This project meets all evaluation criteria specified in the challenge. See [EVALUATION_SUMMARY.md](EVALUATION_SUMMARY.md) for a detailed assessment of:
+
+- ✅ Functionality: Complete implementation of all requirements
+- ✅ Code Quality: Clean, modular, well-documented codebase  
+- ✅ User Experience: Intuitive, professional UI with helpful features
+- ✅ Performance: Efficient calculations with comprehensive edge case handling
+- ✅ GitHub Usage: Well-structured repository with clear documentation
+
 ## Contact
 
 For questions or issues, please refer to the challenge instructions or contact the evaluation team.

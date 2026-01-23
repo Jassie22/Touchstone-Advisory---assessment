@@ -6,13 +6,10 @@ interface CalculatorFormProps {
   isLoading?: boolean;
 }
 
-type RateInputMode = 'percent' | 'decimal';
-
 export const CalculatorForm: React.FC<CalculatorFormProps> = ({
   onSubmit,
   isLoading = false,
 }) => {
-  // Store values in the units the user types (percent by default for rates)
   const [formData, setFormData] = useState<CalculationInput>({
     s0: 100,
     x: 100,
@@ -22,7 +19,6 @@ export const CalculatorForm: React.FC<CalculatorFormProps> = ({
     v: 20 as unknown as number,
   });
 
-  const [rateMode, setRateMode] = useState<RateInputMode>('percent');
   const [errors, setErrors] = useState<
     Partial<Record<keyof CalculationInput, string>>
   >({});
@@ -45,12 +41,8 @@ export const CalculatorForm: React.FC<CalculatorFormProps> = ({
     }
 
     if (name === 'r' || name === 'd' || name === 'v') {
-      if (rateMode === 'percent') {
-        if (value < 0 || value > 100) {
-          return `${name} should be between 0 and 100 when entered as a percentage`;
-        }
-      } else if (value < 0) {
-        return `${name} must be non-negative`;
+      if (value < 0 || value > 100) {
+        return `${name} should be between 0 and 100`;
       }
     }
 
@@ -95,56 +87,25 @@ export const CalculatorForm: React.FC<CalculatorFormProps> = ({
       return;
     }
 
-    const toDecimal = (value: number) =>
-      rateMode === 'percent' ? value / 100 : value;
-
+    // Convert percentages to decimals
     const payload: CalculationInput = {
       ...formData,
-      r: toDecimal(formData.r),
-      d: toDecimal(formData.d),
-      v: toDecimal(formData.v),
+      r: formData.r / 100,
+      d: formData.d / 100,
+      v: formData.v / 100,
     };
 
     onSubmit(payload);
   };
 
-  const renderRateLabelSuffix = () =>
-    rateMode === 'percent'
-      ? '(% input, e.g., 5 for 5%)'
-      : '(decimal, e.g., 0.05 for 5%)';
-
   return (
     <>
       <form onSubmit={handleSubmit} className="calculator-form">
-        <div className="form-header-row">
-          <div>
-            <h2 className="panel-title">Input parameters</h2>
-            <p className="panel-subtitle">
-              Enter market assumptions below. Rates and volatility can be
-              entered as percentages or decimals.
-            </p>
-          </div>
-          <div className="rate-mode-toggle" aria-label="Rate input mode">
-            <span>Rate input:</span>
-            <button
-              type="button"
-              className={
-                rateMode === 'percent' ? 'toggle-option active' : 'toggle-option'
-              }
-              onClick={() => setRateMode('percent')}
-            >
-              Percent (%)
-            </button>
-            <button
-              type="button"
-              className={
-                rateMode === 'decimal' ? 'toggle-option active' : 'toggle-option'
-              }
-              onClick={() => setRateMode('decimal')}
-            >
-              Decimal
-            </button>
-          </div>
+        <div className="form-header">
+          <h2 className="panel-title">Single Calculation</h2>
+          <p className="panel-subtitle">
+            Enter market assumptions below. Rates and volatility are entered as percentages.
+          </p>
         </div>
 
         <div className="form-grid">
@@ -204,17 +165,22 @@ export const CalculatorForm: React.FC<CalculatorFormProps> = ({
 
           <div className="form-group">
             <label htmlFor="r">
-              Risk-Free Interest Rate r {renderRateLabelSuffix()}
+              Risk-Free Interest Rate (r)
             </label>
-            <input
-              type="number"
-              id="r"
-              name="r"
-              value={formData.r}
-              onChange={handleChange}
-              step="0.01"
-              required
-            />
+            <div className="input-with-symbol">
+              <input
+                type="number"
+                id="r"
+                name="r"
+                value={formData.r}
+                onChange={handleChange}
+                step="0.01"
+                min="0"
+                max="100"
+                required
+              />
+              <span className="input-symbol">%</span>
+            </div>
             <span className="field-helper">
               Typically government bond yield at the relevant tenor
             </span>
@@ -223,17 +189,22 @@ export const CalculatorForm: React.FC<CalculatorFormProps> = ({
 
           <div className="form-group">
             <label htmlFor="d">
-              Dividend Yield d {renderRateLabelSuffix()}
+              Dividend Yield (d)
             </label>
-            <input
-              type="number"
-              id="d"
-              name="d"
-              value={formData.d}
-              onChange={handleChange}
-              step="0.01"
-              required
-            />
+            <div className="input-with-symbol">
+              <input
+                type="number"
+                id="d"
+                name="d"
+                value={formData.d}
+                onChange={handleChange}
+                step="0.01"
+                min="0"
+                max="100"
+                required
+              />
+              <span className="input-symbol">%</span>
+            </div>
             <span className="field-helper">
               Forward-looking annual dividend yield
             </span>
@@ -242,18 +213,22 @@ export const CalculatorForm: React.FC<CalculatorFormProps> = ({
 
           <div className="form-group">
             <label htmlFor="v">
-              Volatility v {renderRateLabelSuffix()}
+              Volatility (v)
             </label>
-            <input
-              type="number"
-              id="v"
-              name="v"
-              value={formData.v}
-              onChange={handleChange}
-              step="0.01"
-              min="0"
-              required
-            />
+            <div className="input-with-symbol">
+              <input
+                type="number"
+                id="v"
+                name="v"
+                value={formData.v}
+                onChange={handleChange}
+                step="0.01"
+                min="0"
+                max="100"
+                required
+              />
+              <span className="input-symbol">%</span>
+            </div>
             <span className="field-helper">
               Annualised volatility of the underlying share price
             </span>
@@ -267,7 +242,7 @@ export const CalculatorForm: React.FC<CalculatorFormProps> = ({
       </form>
 
       <section className="inputs-info-panel">
-        <h3>Parameter definitions</h3>
+        <h3>Parameter Definitions</h3>
         <ul>
           <li>
             <strong>S₀</strong> – Current share price of the underlying.
@@ -280,20 +255,16 @@ export const CalculatorForm: React.FC<CalculatorFormProps> = ({
             0.25).
           </li>
           <li>
-            <strong>r</strong> – Continuously compounded risk-free rate.
+            <strong>r</strong> – Continuously compounded risk-free rate (as %).
           </li>
           <li>
-            <strong>d</strong> – Continuous dividend yield on the underlying.
+            <strong>d</strong> – Continuous dividend yield on the underlying (as %).
           </li>
           <li>
             <strong>v</strong> – Annualised volatility of the underlying
-            return.
+            return (as %).
           </li>
         </ul>
-        <p className="inputs-info-note">
-          Rates and volatility are converted to decimals internally, so you can
-          work in whichever convention is most natural (5% or 0.05).
-        </p>
       </section>
     </>
   );

@@ -76,11 +76,8 @@
   gap: 1.5rem;
 }
 
-.form-header-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 2rem;
+.form-header {
+  margin-bottom: 0.5rem;
 }
 
 .panel-title {
@@ -160,6 +157,45 @@
 .form-group input:focus {
   outline: none;
   border-color: #667eea;
+}
+
+.input-with-symbol {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-with-symbol input {
+  padding-right: 2rem;
+  width: 100%;
+}
+
+.input-symbol {
+  position: absolute;
+  right: 0.75rem;
+  color: #666;
+  font-weight: 500;
+  pointer-events: none;
+}
+
+.input-with-symbol-inline {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-with-symbol-inline input {
+  padding-right: 1.5rem;
+  width: 100%;
+}
+
+.input-symbol-inline {
+  position: absolute;
+  right: 0.5rem;
+  color: #666;
+  font-size: 0.85rem;
+  font-weight: 500;
+  pointer-events: none;
 }
 
 .form-group .error {
@@ -434,14 +470,6 @@
     grid-template-columns: 1fr;
   }
 
-  .form-header-row {
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .rate-mode-toggle {
-    align-self: flex-start;
-  }
 
   .results-grid {
     grid-template-columns: 1fr;
@@ -608,5 +636,212 @@
 }
 
 .batch-results-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+/* Compact Batch Calculator Styles */
+.batch-calculator-compact {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-top: 2rem;
+}
+
+.expand-batch-button {
+  width: 100%;
+  padding: 1rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: opacity 0.3s ease;
+}
+
+.expand-batch-button:hover {
+  opacity: 0.9;
+}
+
+.batch-calculator-compact.expanded {
+  padding: 1.5rem;
+}
+
+.batch-header-compact {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.batch-header-compact h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #333;
+}
+
+.collapse-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #666;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  line-height: 1;
+}
+
+.collapse-button:hover {
+  color: #333;
+}
+
+.batch-form-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.batch-table-container-compact {
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+
+.batch-input-table-compact {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.batch-input-table-compact th {
+  background-color: #f8f9fa;
+  padding: 0.5rem;
+  text-align: left;
+  font-weight: 600;
+  color: #555;
+  border-bottom: 2px solid #e0e0e0;
+  white-space: nowrap;
+}
+
+.batch-input-table-compact td {
+  padding: 0.4rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.batch-input-table-compact input {
+  width: 100%;
+  padding: 0.4rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.batch-input-table-compact input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.remove-row-button-compact {
+  background: none;
+  border: none;
+  color: #e74c3c;
+  cursor: pointer;
+  font-size: 1.5rem;
+  padding: 0.25rem 0.5rem;
+  line-height: 1;
+  transition: color 0.3s ease;
+}
+
+.remove-row-button-compact:hover:not(:disabled) {
+  color: #c0392b;
+}
+
+.remove-row-button-compact:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.batch-actions-compact {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.add-row-button-compact {
+  padding: 0.6rem 1.2rem;
+  background-color: #27ae60;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+}
+
+.add-row-button-compact:hover {
+  background-color: #229954;
+}
+
+.submit-button-compact {
+  padding: 0.6rem 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: opacity 0.3s ease;
+}
+
+.submit-button-compact:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.submit-button-compact:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.batch-results-compact {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid #e0e0e0;
+}
+
+.batch-summary-compact {
+  margin-bottom: 1rem;
+}
+
+.batch-summary-compact p {
+  margin: 0;
+  color: #555;
+}
+
+.batch-results-table-container-compact {
+  overflow-x: auto;
+}
+
+.batch-results-table-compact {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.batch-results-table-compact th {
+  background-color: #f8f9fa;
+  padding: 0.6rem;
+  text-align: left;
+  font-weight: 600;
+  color: #555;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.batch-results-table-compact td {
+  padding: 0.6rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.batch-results-table-compact tbody tr:hover {
   background-color: #f8f9fa;
 }

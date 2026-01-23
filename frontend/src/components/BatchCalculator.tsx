@@ -2,16 +2,18 @@ import React, { useState, FormEvent } from 'react';
 import { CalculationInput, BatchCalculationResponse } from '../types';
 import { batchCalculateBlackScholes } from '../services/api';
 
-type RateInputMode = 'percent' | 'decimal';
+interface BatchCalculatorProps {
+  onResults?: (results: BatchCalculationResponse) => void;
+}
 
-export const BatchCalculator: React.FC = () => {
+export const BatchCalculator: React.FC<BatchCalculatorProps> = ({ onResults }) => {
   const [calculations, setCalculations] = useState<CalculationInput[]>([
     { s0: 100, x: 100, t: 1, r: 5, d: 2, v: 20 } as unknown as CalculationInput,
   ]);
-  const [rateMode, setRateMode] = useState<RateInputMode>('percent');
   const [results, setResults] = useState<BatchCalculationResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const addRow = () => {
     setCalculations([...calculations, { s0: 100, x: 100, t: 1, r: 5, d: 2, v: 20 } as unknown as CalculationInput]);
@@ -34,19 +36,21 @@ export const BatchCalculator: React.FC = () => {
     setResults(null);
 
     try {
-      const toDecimal = (value: number) => (rateMode === 'percent' ? value / 100 : value);
-
+      // Convert percentages to decimals
       const payload = {
         calculations: calculations.map((calc) => ({
           ...calc,
-          r: toDecimal(calc.r),
-          d: toDecimal(calc.d),
-          v: toDecimal(calc.v),
+          r: calc.r / 100,
+          d: calc.d / 100,
+          v: calc.v / 100,
         })),
       };
 
       const response = await batchCalculateBlackScholes(payload);
       setResults(response);
+      if (onResults) {
+        onResults(response);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to calculate batch');
     } finally {
@@ -56,42 +60,45 @@ export const BatchCalculator: React.FC = () => {
 
   const formatCurrency = (value: number): string => value.toFixed(4);
 
+  if (!isExpanded) {
+    return (
+      <div className="batch-calculator-compact">
+        <button
+          type="button"
+          onClick={() => setIsExpanded(true)}
+          className="expand-batch-button"
+        >
+          + Batch Calculator (Calculate Multiple Options)
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="batch-calculator">
-      <div className="batch-header">
-        <h2>Batch Calculator</h2>
-        <p className="panel-subtitle">Calculate multiple option prices at once</p>
-        <div className="rate-mode-toggle">
-          <span>Rate input:</span>
-          <button
-            type="button"
-            className={rateMode === 'percent' ? 'toggle-option active' : 'toggle-option'}
-            onClick={() => setRateMode('percent')}
-          >
-            Percent (%)
-          </button>
-          <button
-            type="button"
-            className={rateMode === 'decimal' ? 'toggle-option active' : 'toggle-option'}
-            onClick={() => setRateMode('decimal')}
-          >
-            Decimal
-          </button>
-        </div>
+    <div className="batch-calculator-compact expanded">
+      <div className="batch-header-compact">
+        <h3>Batch Calculator</h3>
+        <button
+          type="button"
+          onClick={() => setIsExpanded(false)}
+          className="collapse-button"
+        >
+          −
+        </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="batch-form">
-        <div className="batch-table-container">
-          <table className="batch-input-table">
+      <form onSubmit={handleSubmit} className="batch-form-compact">
+        <div className="batch-table-container-compact">
+          <table className="batch-input-table-compact">
             <thead>
               <tr>
                 <th>S₀</th>
                 <th>X</th>
-                <th>t (years)</th>
-                <th>r {rateMode === 'percent' ? '(%)' : '(decimal)'}</th>
-                <th>d {rateMode === 'percent' ? '(%)' : '(decimal)'}</th>
-                <th>v {rateMode === 'percent' ? '(%)' : '(decimal)'}</th>
-                <th>Actions</th>
+                <th>t</th>
+                <th>r %</th>
+                <th>d %</th>
+                <th>v %</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
@@ -128,41 +135,56 @@ export const BatchCalculator: React.FC = () => {
                     />
                   </td>
                   <td>
-                    <input
-                      type="number"
-                      value={calc.r}
-                      onChange={(e) => updateCalculation(index, 'r', parseFloat(e.target.value) || 0)}
-                      step="0.01"
-                      required
-                    />
+                    <div className="input-with-symbol-inline">
+                      <input
+                        type="number"
+                        value={calc.r}
+                        onChange={(e) => updateCalculation(index, 'r', parseFloat(e.target.value) || 0)}
+                        step="0.01"
+                        min="0"
+                        max="100"
+                        required
+                      />
+                      <span className="input-symbol-inline">%</span>
+                    </div>
                   </td>
                   <td>
-                    <input
-                      type="number"
-                      value={calc.d}
-                      onChange={(e) => updateCalculation(index, 'd', parseFloat(e.target.value) || 0)}
-                      step="0.01"
-                      required
-                    />
+                    <div className="input-with-symbol-inline">
+                      <input
+                        type="number"
+                        value={calc.d}
+                        onChange={(e) => updateCalculation(index, 'd', parseFloat(e.target.value) || 0)}
+                        step="0.01"
+                        min="0"
+                        max="100"
+                        required
+                      />
+                      <span className="input-symbol-inline">%</span>
+                    </div>
                   </td>
                   <td>
-                    <input
-                      type="number"
-                      value={calc.v}
-                      onChange={(e) => updateCalculation(index, 'v', parseFloat(e.target.value) || 0)}
-                      step="0.01"
-                      min="0"
-                      required
-                    />
+                    <div className="input-with-symbol-inline">
+                      <input
+                        type="number"
+                        value={calc.v}
+                        onChange={(e) => updateCalculation(index, 'v', parseFloat(e.target.value) || 0)}
+                        step="0.01"
+                        min="0"
+                        max="100"
+                        required
+                      />
+                      <span className="input-symbol-inline">%</span>
+                    </div>
                   </td>
                   <td>
                     <button
                       type="button"
                       onClick={() => removeRow(index)}
-                      className="remove-row-button"
+                      className="remove-row-button-compact"
                       disabled={calculations.length === 1}
+                      title="Remove row"
                     >
-                      Remove
+                      ×
                     </button>
                   </td>
                 </tr>
@@ -171,11 +193,11 @@ export const BatchCalculator: React.FC = () => {
           </table>
         </div>
 
-        <div className="batch-actions">
-          <button type="button" onClick={addRow} className="add-row-button">
+        <div className="batch-actions-compact">
+          <button type="button" onClick={addRow} className="add-row-button-compact">
             + Add Row
           </button>
-          <button type="submit" disabled={isLoading || calculations.length === 0} className="submit-button">
+          <button type="submit" disabled={isLoading || calculations.length === 0} className="submit-button-compact">
             {isLoading ? 'Calculating...' : `Calculate ${calculations.length} Option${calculations.length !== 1 ? 's' : ''}`}
           </button>
         </div>
@@ -184,28 +206,23 @@ export const BatchCalculator: React.FC = () => {
       {error && <div className="error-message">{error}</div>}
 
       {results && (
-        <div className="batch-results">
-          <div className="batch-summary">
-            <h3>Batch Results</h3>
+        <div className="batch-results-compact">
+          <div className="batch-summary-compact">
             <p>
-              Successful: <strong>{results.successful}</strong> | Failed: <strong>{results.failed}</strong> | Total:{' '}
-              <strong>{results.total}</strong>
+              <strong>Results:</strong> {results.successful} successful, {results.failed} failed
             </p>
           </div>
 
           {results.results.length > 0 && (
-            <div className="batch-results-table-container">
-              <table className="batch-results-table">
+            <div className="batch-results-table-container-compact">
+              <table className="batch-results-table-compact">
                 <thead>
                   <tr>
                     <th>S₀</th>
                     <th>X</th>
                     <th>t</th>
-                    <th>r</th>
-                    <th>d</th>
-                    <th>v</th>
-                    <th>Call Price</th>
-                    <th>Put Price</th>
+                    <th>Call</th>
+                    <th>Put</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -214,9 +231,6 @@ export const BatchCalculator: React.FC = () => {
                       <td>${formatCurrency(result.s0)}</td>
                       <td>${formatCurrency(result.x)}</td>
                       <td>{result.t.toFixed(2)}</td>
-                      <td>{(result.r * 100).toFixed(2)}%</td>
-                      <td>{(result.d * 100).toFixed(2)}%</td>
-                      <td>{(result.v * 100).toFixed(2)}%</td>
                       <td className="price-cell">${formatCurrency(result.call_price)}</td>
                       <td className="price-cell">${formatCurrency(result.put_price)}</td>
                     </tr>

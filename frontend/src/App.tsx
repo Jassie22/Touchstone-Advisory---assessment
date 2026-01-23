@@ -11,7 +11,7 @@ function App() {
   const [currentResult, setCurrentResult] = useState<CalculationResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'calculator' | 'batch' | 'history'>('calculator');
+  const [activeTab, setActiveTab] = useState<'calculator' | 'history'>('calculator');
 
   const handleCalculate = async (input: CalculationInput) => {
     try {
@@ -44,12 +44,6 @@ function App() {
           Calculator
         </button>
         <button
-          className={`tab-button ${activeTab === 'batch' ? 'active' : ''}`}
-          onClick={() => setActiveTab('batch')}
-        >
-          Batch
-        </button>
-        <button
           className={`tab-button ${activeTab === 'history' ? 'active' : ''}`}
           onClick={() => setActiveTab('history')}
         >
@@ -63,10 +57,9 @@ function App() {
             <CalculatorForm onSubmit={handleCalculate} isLoading={isLoading} />
             {error && <div className="error-message">{error}</div>}
             <ResultsDisplay result={currentResult} />
+            <BatchCalculator />
           </div>
         )}
-
-        {activeTab === 'batch' && <BatchCalculator />}
 
         {activeTab === 'history' && <HistoryView />}
       </main>

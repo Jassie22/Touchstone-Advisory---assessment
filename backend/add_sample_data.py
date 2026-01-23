@@ -1,23 +1,52 @@
 """
 Script to add 100 random sample calculations to the database.
-Run from the backend directory: python add_sample_data.py
+
+Prerequisites:
+    - Python dependencies must be installed first
+    - Run from project root: python -m pip install -r backend/requirements.txt
+    - Or use the install script: powershell -ExecutionPolicy Bypass -File .\install_dependencies.ps1
+
+Usage:
+    cd backend
+    python add_sample_data.py
 """
 import random
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 
+# Check for required dependencies
+try:
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import sessionmaker
+except ImportError:
+    print("❌ Error: SQLAlchemy not found.")
+    print("Please install dependencies first:")
+    print("  python -m pip install -r requirements.txt")
+    print("Or from project root:")
+    print("  powershell -ExecutionPolicy Bypass -File .\\install_dependencies.ps1")
+    sys.exit(1)
+
+try:
+    from scipy.stats import norm
+except ImportError:
+    print("❌ Error: scipy not found.")
+    print("Please install dependencies first:")
+    print("  python -m pip install -r requirements.txt")
+    sys.exit(1)
+
 # Add parent directory to path to import app modules
 backend_dir = Path(__file__).parent
 sys.path.insert(0, str(backend_dir))
 
-# Import directly to avoid importing FastAPI through app.__init__
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-
 # Import models and calculation logic directly
-from app.models import Calculation, Base
-from app.black_scholes import calculate_call_put
+try:
+    from app.models import Calculation, Base
+    from app.black_scholes import calculate_call_put
+except ImportError as e:
+    print(f"❌ Error importing app modules: {e}")
+    print("Make sure you're running from the backend directory.")
+    sys.exit(1)
 
 # Create database connection (same as in database.py)
 SQLALCHEMY_DATABASE_URL = "sqlite:///./calculations.db"
@@ -65,7 +94,8 @@ def generate_sample_data():
                 )
                 
                 db.add(calc)
-                print(f"Added calculation {i+1}/100: S₀=${s0}, X=${x}, Call=${call_price:.4f}, Put=${put_price:.4f}")
+                if (i + 1) % 10 == 0:
+                    print(f"Added {i+1}/100 calculations...")
                 
             except ValueError as e:
                 print(f"Skipping invalid calculation {i+1}: {e}")
@@ -73,14 +103,20 @@ def generate_sample_data():
         
         db.commit()
         print("\n✅ Successfully added 100 sample calculations to the database!")
+        print(f"Database file: {Path(__file__).parent / 'calculations.db'}")
         
     except Exception as e:
         db.rollback()
         print(f"\n❌ Error: {e}")
+        import traceback
+        traceback.print_exc()
         raise
     finally:
         db.close()
 
 if __name__ == "__main__":
+    print("=" * 60)
+    print("Black-Scholes Sample Data Generator")
+    print("=" * 60)
     print("Generating 100 random sample calculations...\n")
     generate_sample_data()

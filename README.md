@@ -85,6 +85,17 @@ Frontend opens at `http://localhost:3000`
 
 **Note:** Ensure the backend is running before starting the frontend.
 
+### 3. Generate Sample Data (Optional)
+
+To populate the database with 100 random sample calculations for testing:
+
+```bash
+cd backend
+python add_sample_data.py
+```
+
+**Note:** Make sure dependencies are installed first (see Step 1).
+
 ### Troubleshooting
 
 - **Python 3.14+ compatibility:** If `scipy` installation fails, use Python 3.11 or 3.12, or try: `python -m pip install scipy --only-binary :all:`

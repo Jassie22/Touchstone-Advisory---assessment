@@ -143,8 +143,17 @@ export const CalculatorForm: React.FC<CalculatorFormProps> = ({
 
   return (
     <>
+      <div className="calculator-intro">
+        <h2>Black-Scholes Option Pricing Calculator</h2>
+        <p>
+          Calculate European option prices using the Black-Scholes model. Enter your market assumptions below.
+          You can add multiple rows to calculate several options at once. All rates and volatility should be entered as percentages.
+        </p>
+      </div>
+
       <form onSubmit={handleSubmit} className="calculator-form">
         <div className="form-header-compact">
+          <h3 className="form-title">Input Parameters</h3>
           <p className="panel-subtitle">
             Enter market assumptions. Rates and volatility are entered as percentages.
           </p>

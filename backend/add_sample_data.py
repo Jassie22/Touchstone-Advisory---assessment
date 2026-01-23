@@ -4,7 +4,7 @@ Script to add 100 random sample calculations to the database.
 Prerequisites:
     - Python dependencies must be installed first
     - Run from project root: python -m pip install -r backend/requirements.txt
-    - Or use the install script: powershell -ExecutionPolicy Bypass -File .\install_dependencies.ps1
+    - Or use the install script: powershell -ExecutionPolicy Bypass -File .\\install_dependencies.ps1
 
 Usage:
     cd backend

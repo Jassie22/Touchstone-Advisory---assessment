@@ -10,12 +10,18 @@ export const HistoryView: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showExportDropdown, setShowExportDropdown] = useState(false);
   const [showCopyDropdown, setShowCopyDropdown] = useState(false);
+  const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
 
   useEffect(() => {
     loadHistory();
+  }, [currentPage, itemsPerPage]);
+
+  useEffect(() => {
+    // Clear selections when page changes
+    setSelectedRows(new Set());
   }, [currentPage, itemsPerPage]);
 
   const loadHistory = async () => {
@@ -72,11 +78,38 @@ export const HistoryView: React.FC = () => {
     }
   };
 
-  const generateCSV = (): string => {
+  const toggleRowSelection = (id: number) => {
+    setSelectedRows(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
+
+  const selectAllRows = () => {
+    setSelectedRows(new Set(history.map(calc => calc.id)));
+  };
+
+  const deselectAllRows = () => {
+    setSelectedRows(new Set());
+  };
+
+  const getSelectedCalculations = (): CalculationSummary[] => {
+    if (selectedRows.size === 0) {
+      return history; // If nothing selected, export all
+    }
+    return history.filter(calc => selectedRows.has(calc.id));
+  };
+
+  const generateCSV = (calculations: CalculationSummary[]): string => {
     const headers = ['Date', 'S₀', 'X', 't (years)', 'r (%)', 'd (%)', 'v (%)', 'Call Price', 'Put Price'];
     const csvRows = [headers.join(',')];
 
-    history.forEach(calc => {
+    calculations.forEach(calc => {
       const row = [
         `"${formatValue(calc, 'date')}"`,
         formatValue(calc, 's0'),
@@ -94,9 +127,9 @@ export const HistoryView: React.FC = () => {
     return csvRows.join('\n');
   };
 
-  const generateSQL = (): string => {
+  const generateSQL = (calculations: CalculationSummary[]): string => {
     let sql = `INSERT INTO calculations (s0, x, t, r, d, v, call_price, put_price, created_at) VALUES\n`;
-    const values = history.map((calc, idx) => {
+    const values = calculations.map((calc, idx) => {
       const rowValues = [
         formatValue(calc, 's0'),
         formatValue(calc, 'x'),
@@ -108,14 +141,14 @@ export const HistoryView: React.FC = () => {
         formatValue(calc, 'put_price'),
         `'${new Date(calc.created_at).toISOString()}'`,
       ].join(', ');
-      return `  (${rowValues})${idx < history.length - 1 ? ',' : ';'}`;
+      return `  (${rowValues})${idx < calculations.length - 1 ? ',' : ';'}`;
     });
 
     return sql + values.join('\n');
   };
 
-  const generateJSON = (): string => {
-    const data = history.map(calc => ({
+  const generateJSON = (calculations: CalculationSummary[]): string => {
+    const data = calculations.map(calc => ({
       'Date': formatValue(calc, 'date'),
       'S₀': parseFloat(formatValue(calc, 's0')),
       'X': parseFloat(formatValue(calc, 'x')),
@@ -153,22 +186,34 @@ export const HistoryView: React.FC = () => {
   };
 
   const handleCopy = (format: ExportFormat) => {
+    const calculations = getSelectedCalculations();
+    if (calculations.length === 0) {
+      alert('Please select at least one row to copy.');
+      return;
+    }
+
     let content = '';
     switch (format) {
       case 'csv':
-        content = generateCSV();
+        content = generateCSV(calculations);
         break;
       case 'sql':
-        content = generateSQL();
+        content = generateSQL(calculations);
         break;
       case 'json':
-        content = generateJSON();
+        content = generateJSON(calculations);
         break;
     }
     copyToClipboard(content, format);
   };
 
   const handleExport = (format: ExportFormat) => {
+    const calculations = getSelectedCalculations();
+    if (calculations.length === 0) {
+      alert('Please select at least one row to export.');
+      return;
+    }
+
     const timestamp = new Date().toISOString().split('T')[0];
     let content = '';
     let filename = '';
@@ -176,17 +221,17 @@ export const HistoryView: React.FC = () => {
 
     switch (format) {
       case 'csv':
-        content = generateCSV();
+        content = generateCSV(calculations);
         filename = `black-scholes-history-${timestamp}.csv`;
         mimeType = 'text/csv;charset=utf-8;';
         break;
       case 'sql':
-        content = generateSQL();
+        content = generateSQL(calculations);
         filename = `black-scholes-history-${timestamp}.sql`;
         mimeType = 'text/sql;charset=utf-8;';
         break;
       case 'json':
-        content = generateJSON();
+        content = generateJSON(calculations);
         filename = `black-scholes-history-${timestamp}.json`;
         mimeType = 'application/json;charset=utf-8;';
         break;
@@ -196,6 +241,8 @@ export const HistoryView: React.FC = () => {
   };
 
   const totalPages = Math.ceil(totalCount / itemsPerPage);
+  const allSelected = history.length > 0 && selectedRows.size === history.length;
+  const someSelected = selectedRows.size > 0 && selectedRows.size < history.length;
 
   if (loading && history.length === 0) {
     return <div className="history-loading">Loading history...</div>;
@@ -217,7 +264,10 @@ export const HistoryView: React.FC = () => {
   return (
     <div className="history-view">
       <div className="history-header">
-        <h2>Calculation History</h2>
+        <div>
+          <h2>Calculation History</h2>
+          <p className="history-subtitle">View and export your previous Black-Scholes calculations</p>
+        </div>
         <div className="history-actions">
           <div className="dropdown-container">
             <button 
@@ -253,20 +303,22 @@ export const HistoryView: React.FC = () => {
         </div>
       </div>
 
-      <div className="history-controls">
-        <div className="items-per-page">
-          <label>Items per page:</label>
-          <select 
-            value={itemsPerPage} 
-            onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
-            className="page-size-select"
+      <div className="history-selection-controls">
+        <div className="selection-actions">
+          <button 
+            type="button"
+            onClick={allSelected ? deselectAllRows : selectAllRows}
+            className="select-all-button"
           >
-            <option value={10}>10</option>
-            <option value={100}>100</option>
-            <option value={500}>500</option>
-          </select>
+            {allSelected ? 'Deselect All' : 'Select All'}
+          </button>
+          <span className="selection-info">
+            {selectedRows.size > 0 
+              ? `${selectedRows.size} of ${history.length} selected`
+              : 'No rows selected (all will be exported)'}
+          </span>
         </div>
-        <div className="pagination-info">
+        <div className="pagination-info-top">
           Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, totalCount)} of {totalCount} results
         </div>
       </div>
@@ -275,6 +327,7 @@ export const HistoryView: React.FC = () => {
         <table className="history-table">
           <thead>
             <tr>
+              <th className="checkbox-column"></th>
               <th>Date</th>
               <th>S<sub>0</sub></th>
               <th>X</th>
@@ -288,7 +341,15 @@ export const HistoryView: React.FC = () => {
           </thead>
           <tbody>
             {history.map((calc) => (
-              <tr key={calc.id}>
+              <tr key={calc.id} className={selectedRows.has(calc.id) ? 'selected' : ''}>
+                <td className="checkbox-column">
+                  <input
+                    type="checkbox"
+                    checked={selectedRows.has(calc.id)}
+                    onChange={() => toggleRowSelection(calc.id)}
+                    className="row-checkbox"
+                  />
+                </td>
                 <td>{formatDate(calc.created_at)}</td>
                 <td>${formatCurrency(calc.s0)}</td>
                 <td>${formatCurrency(calc.x)}</td>
@@ -304,27 +365,41 @@ export const HistoryView: React.FC = () => {
         </table>
       </div>
 
-      {totalPages > 1 && (
-        <div className="pagination">
-          <button 
-            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-            disabled={currentPage === 1}
-            className="pagination-button"
+      <div className="history-footer-controls">
+        {totalPages > 1 && (
+          <div className="pagination">
+            <button 
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              className="pagination-button"
+            >
+              Previous
+            </button>
+            <span className="pagination-page-info">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button 
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+              className="pagination-button"
+            >
+              Next
+            </button>
+          </div>
+        )}
+        <div className="items-per-page-bottom">
+          <label>Items per page:</label>
+          <select 
+            value={itemsPerPage} 
+            onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+            className="page-size-select"
           >
-            Previous
-          </button>
-          <span className="pagination-page-info">
-            Page {currentPage} of {totalPages}
-          </span>
-          <button 
-            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-            disabled={currentPage === totalPages}
-            className="pagination-button"
-          >
-            Next
-          </button>
+            <option value={10}>10</option>
+            <option value={100}>100</option>
+            <option value={500}>500</option>
+          </select>
         </div>
-      )}
+      </div>
     </div>
   );
 };

@@ -118,12 +118,6 @@ Frontend opens at `http://localhost:3000`
    - All calculations are processed in a single API call for efficiency.
    - Results show successful/failed counts and a table of all calculated prices.
 
-4. **Price Visualization:**
-   - Click on the **Visualization** tab to see option prices over time.
-   - Interactive line chart showing call and put price trends.
-   - Statistics showing total calculations and average prices.
-   - Chart updates automatically when new calculations are performed.
-
 ## Challenge Requirements Checklist
 
 - **React + TypeScript frontend** for input, results, and history views.
@@ -308,7 +302,6 @@ All errors are displayed to the user with appropriate error messages.
 - ✅ **Single Calculation**: Calculate individual option prices with detailed results
 - ✅ **Batch Calculations**: Process multiple parameter sets simultaneously
 - ✅ **Calculation History**: View and manage all previous calculations
-- ✅ **Price Visualization**: Interactive charts showing price trends over time
 - ✅ **Flexible Input**: Support for both percentage and decimal input formats
 - ✅ **Parameter Definitions**: Built-in help panel explaining each input parameter
 

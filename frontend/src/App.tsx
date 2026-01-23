@@ -3,7 +3,6 @@ import { CalculatorForm } from './components/CalculatorForm';
 import { ResultsDisplay } from './components/ResultsDisplay';
 import { HistoryView } from './components/HistoryView';
 import { BatchCalculator } from './components/BatchCalculator';
-import { PriceVisualization } from './components/PriceVisualization';
 import { CalculationInput, CalculationResult } from './types';
 import { calculateBlackScholes } from './services/api';
 import './App.css';
@@ -12,7 +11,7 @@ function App() {
   const [currentResult, setCurrentResult] = useState<CalculationResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'calculator' | 'batch' | 'history' | 'visualization'>('calculator');
+  const [activeTab, setActiveTab] = useState<'calculator' | 'batch' | 'history'>('calculator');
 
   const handleCalculate = async (input: CalculationInput) => {
     try {
@@ -56,12 +55,6 @@ function App() {
         >
           History
         </button>
-        <button
-          className={`tab-button ${activeTab === 'visualization' ? 'active' : ''}`}
-          onClick={() => setActiveTab('visualization')}
-        >
-          Visualization
-        </button>
       </nav>
 
       <main className="app-main">
@@ -76,8 +69,6 @@ function App() {
         {activeTab === 'batch' && <BatchCalculator />}
 
         {activeTab === 'history' && <HistoryView />}
-
-        {activeTab === 'visualization' && <PriceVisualization />}
       </main>
 
       <footer className="app-footer">

@@ -464,14 +464,6 @@
   .batch-input-table td {
     padding: 0.4rem;
   }
-
-  .visualization-stats {
-    grid-template-columns: 1fr;
-  }
-
-  .chart-container {
-    padding: 0.5rem;
-  }
 }
 
 /* Batch Calculator Styles */
@@ -617,98 +609,4 @@
 
 .batch-results-table tbody tr:hover {
   background-color: #f8f9fa;
-}
-
-/* Price Visualization Styles */
-.price-visualization {
-  background: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.visualization-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-}
-
-.visualization-header h2 {
-  margin: 0;
-  color: #333;
-}
-
-.chart-container {
-  margin: 2rem 0;
-  padding: 1rem;
-  background-color: #fafafa;
-  border-radius: 8px;
-}
-
-.visualization-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-top: 2rem;
-}
-
-.stat-card {
-  padding: 1.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border-radius: 8px;
-  text-align: center;
-}
-
-.stat-card h4 {
-  margin: 0 0 0.5rem;
-  font-size: 0.9rem;
-  opacity: 0.9;
-}
-
-.stat-value {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: bold;
-}
-
-.visualization-loading,
-.visualization-empty {
-  text-align: center;
-  padding: 3rem;
-  color: #666;
-}
-
-.visualization-error {
-  text-align: center;
-  padding: 2rem;
-  background-color: #fee;
-  color: #c33;
-  border-radius: 4px;
-}
-
-.visualization-error button {
-  margin-top: 1rem;
-  padding: 0.5rem 1rem;
-  background-color: #c33;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.visualization-note {
-  margin-top: 1.5rem;
-  padding: 1rem;
-  background-color: #f0f4ff;
-  border-left: 4px solid #667eea;
-  border-radius: 4px;
-  font-size: 0.9rem;
-  color: #555;
-}
-
-.visualization-note p {
-  margin: 0;
-  line-height: 1.5;
 }

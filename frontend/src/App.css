@@ -439,7 +439,7 @@
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   border-radius: 10px;
   border: 1px solid #e2e8f0;
-  font-size: 0.9rem;
+  font-size: 1rem;
   color: #334155;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
 }
@@ -447,8 +447,9 @@
 .inputs-info-panel h3 {
   margin-top: 0;
   margin-bottom: 0.5rem;
-  font-size: 0.95rem;
-  color: #333;
+  font-size: 1.2rem;
+  color: #1e3a8a;
+  font-weight: 600;
 }
 
 .inputs-info-panel ul {
@@ -457,7 +458,9 @@
 }
 
 .inputs-info-panel li {
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.55rem;
+  font-size: 0.98rem;
+  line-height: 1.5;
 }
 
 .formula-panel {
@@ -481,11 +484,11 @@
 .formula-content {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 0.9rem;
 }
 
 .formula-section {
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
 }
 
 .formula-section h4 {
@@ -1634,4 +1637,46 @@
 
 .format-button.copy-button:hover {
   background-color: #229954;
+}
+
+/* Toast notifications (top bar, auto-fade) */
+.toast-notification {
+  position: fixed;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.75rem 1.5rem;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #0f172a;
+  background-color: #e0f2fe;
+  border: 1px solid #7dd3fc;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+  z-index: 1100;
+  opacity: 0.97;
+  animation: toast-slide-down 0.25s ease-out;
+}
+
+.toast-success {
+  background-color: #dcfce7;
+  border-color: #86efac;
+  color: #14532d;
+}
+
+.toast-error {
+  background-color: #fee2e2;
+  border-color: #fca5a5;
+  color: #991b1b;
+}
+
+@keyframes toast-slide-down {
+  from {
+    transform: translate(-50%, -10px);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, 0);
+    opacity: 0.97;
+  }
 }

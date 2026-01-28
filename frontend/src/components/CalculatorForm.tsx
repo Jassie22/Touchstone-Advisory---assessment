@@ -192,7 +192,7 @@ export const CalculatorForm: React.FC<CalculatorFormProps> = ({
                       type="number"
                       value={row.s0}
                       onChange={(e) => handleChange(rowIndex, 's0', e.target.value)}
-                      step="0.01"
+                      step="1"
                       min="0.01"
                       required
                       className="table-input"
@@ -204,7 +204,7 @@ export const CalculatorForm: React.FC<CalculatorFormProps> = ({
                       type="number"
                       value={row.x}
                       onChange={(e) => handleChange(rowIndex, 'x', e.target.value)}
-                      step="0.01"
+                      step="1"
                       min="0.01"
                       required
                       className="table-input"
@@ -229,7 +229,7 @@ export const CalculatorForm: React.FC<CalculatorFormProps> = ({
                         type="number"
                         value={row.r}
                         onChange={(e) => handleChange(rowIndex, 'r', e.target.value)}
-                        step="0.01"
+                        step="1"
                         min="0"
                         max="100"
                         required
@@ -245,7 +245,7 @@ export const CalculatorForm: React.FC<CalculatorFormProps> = ({
                         type="number"
                         value={row.d}
                         onChange={(e) => handleChange(rowIndex, 'd', e.target.value)}
-                        step="0.01"
+                        step="1"
                         min="0"
                         max="100"
                         required
@@ -261,7 +261,7 @@ export const CalculatorForm: React.FC<CalculatorFormProps> = ({
                         type="number"
                         value={row.v}
                         onChange={(e) => handleChange(rowIndex, 'v', e.target.value)}
-                        step="0.01"
+                        step="1"
                         min="0"
                         max="100"
                         required

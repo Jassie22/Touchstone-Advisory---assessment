@@ -11,6 +11,8 @@ export const HistoryView: React.FC = () => {
   const [showExportDropdown, setShowExportDropdown] = useState(false);
   const [showCopyDropdown, setShowCopyDropdown] = useState(false);
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toastType, setToastType] = useState<'success' | 'error'>('success');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
@@ -163,13 +165,24 @@ export const HistoryView: React.FC = () => {
     return JSON.stringify(data, null, 2);
   };
 
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToastType(type);
+    setToastMessage(message);
+    // Auto-hide after a short delay
+    window.setTimeout(() => {
+      setToastMessage(null);
+    }, 2500);
+  };
+
   const copyToClipboard = (content: string, format: string) => {
-    navigator.clipboard.writeText(content).then(() => {
-      alert(`${format.toUpperCase()} copied to clipboard!`);
-      setShowCopyDropdown(false);
-    }).catch(() => {
-      alert('Failed to copy to clipboard');
-    });
+    navigator.clipboard.writeText(content)
+      .then(() => {
+        showToast(`${format.toUpperCase()} copied to clipboard!`, 'success');
+        setShowCopyDropdown(false);
+      })
+      .catch(() => {
+        showToast('Failed to copy to clipboard', 'error');
+      });
   };
 
   const downloadFile = (content: string, filename: string, mimeType: string) => {
@@ -188,7 +201,7 @@ export const HistoryView: React.FC = () => {
   const handleCopy = (format: ExportFormat) => {
     const calculations = getSelectedCalculations();
     if (calculations.length === 0) {
-      alert('Please select at least one row to copy.');
+      showToast('Please select at least one row to copy.', 'error');
       return;
     }
 
@@ -210,7 +223,7 @@ export const HistoryView: React.FC = () => {
   const handleExport = (format: ExportFormat) => {
     const calculations = getSelectedCalculations();
     if (calculations.length === 0) {
-      alert('Please select at least one row to export.');
+      showToast('Please select at least one row to export.', 'error');
       return;
     }
 
@@ -244,162 +257,166 @@ export const HistoryView: React.FC = () => {
   const allSelected = history.length > 0 && selectedRows.size === history.length;
   const someSelected = selectedRows.size > 0 && selectedRows.size < history.length;
 
-  if (loading && history.length === 0) {
-    return <div className="history-loading">Loading history...</div>;
-  }
-
-  if (error) {
-    return (
-      <div className="history-error">
-        <p>Error: {error}</p>
-        <button onClick={loadHistory}>Retry</button>
-      </div>
-    );
-  }
-
-  if (history.length === 0) {
-    return <div className="history-empty">No calculation history available.</div>;
-  }
-
   return (
-    <div className="history-view">
-      <div className="history-header">
-        <div>
-          <h2>Calculation History</h2>
-          <p className="history-subtitle">View and export your previous Black-Scholes calculations</p>
+    <>
+      {toastMessage && (
+        <div className={`toast-notification ${toastType === 'error' ? 'toast-error' : 'toast-success'}`}>
+          {toastMessage}
         </div>
-        <div className="history-actions">
-          <div className="dropdown-container">
-            <button 
-              onClick={() => { setShowCopyDropdown(!showCopyDropdown); setShowExportDropdown(false); }} 
-              className="copy-button"
-            >
-              Copy ↓
-            </button>
-            {showCopyDropdown && (
-              <div className="dropdown-menu">
-                <button onClick={() => handleCopy('csv')}>Copy as CSV</button>
-                <button onClick={() => handleCopy('sql')}>Copy as SQL</button>
-                <button onClick={() => handleCopy('json')}>Copy as JSON</button>
+      )}
+      {loading && history.length === 0 && (
+        <div className="history-loading">Loading history...</div>
+      )}
+      {error && (
+        <div className="history-error">
+          <p>Error: {error}</p>
+          <button onClick={loadHistory}>Retry</button>
+        </div>
+      )}
+      {!loading && !error && history.length === 0 && (
+        <div className="history-empty">No calculation history available.</div>
+      )}
+      {history.length > 0 && (
+        <div className="history-view">
+          <div className="history-header">
+            <div>
+              <h2>Calculation History</h2>
+              <p className="history-subtitle">View and export your previous Black-Scholes calculations</p>
+            </div>
+            <div className="history-actions">
+              <div className="dropdown-container">
+                <button
+                  onClick={() => { setShowCopyDropdown(!showCopyDropdown); setShowExportDropdown(false); }}
+                  className="copy-button"
+                >
+                  Copy ↓
+                </button>
+                {showCopyDropdown && (
+                  <div className="dropdown-menu">
+                    <button onClick={() => handleCopy('csv')}>Copy as CSV</button>
+                    <button onClick={() => handleCopy('sql')}>Copy as SQL</button>
+                    <button onClick={() => handleCopy('json')}>Copy as JSON</button>
+                  </div>
+                )}
+              </div>
+              <div className="dropdown-container">
+                <button
+                  onClick={() => { setShowExportDropdown(!showExportDropdown); setShowCopyDropdown(false); }}
+                  className="export-button"
+                >
+                  Export ↓
+                </button>
+                {showExportDropdown && (
+                  <div className="dropdown-menu">
+                    <button onClick={() => handleExport('csv')}>Export as CSV</button>
+                    <button onClick={() => handleExport('sql')}>Export as SQL</button>
+                    <button onClick={() => handleExport('json')}>Export as JSON</button>
+                  </div>
+                )}
+              </div>
+              <button onClick={loadHistory} className="refresh-button">Refresh</button>
+            </div>
+          </div>
+
+          <div className="history-selection-controls">
+            <div className="selection-actions">
+              <button
+                type="button"
+                onClick={allSelected ? deselectAllRows : selectAllRows}
+                className="select-all-button"
+              >
+                {allSelected ? 'Deselect All' : 'Select All'}
+              </button>
+              <span className="selection-info">
+                {selectedRows.size > 0
+                  ? `${selectedRows.size} of ${history.length} selected`
+                  : 'No rows selected (all will be exported)'}
+              </span>
+            </div>
+            <div className="pagination-info-top">
+              Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, totalCount)} of {totalCount} results
+            </div>
+          </div>
+
+          <div className="history-table-container">
+            <table className="history-table">
+              <thead>
+                <tr>
+                  <th className="checkbox-column"></th>
+                  <th>Date</th>
+                  <th>S<sub>0</sub></th>
+                  <th>X</th>
+                  <th>t (years)</th>
+                  <th>r</th>
+                  <th>d</th>
+                  <th>v</th>
+                  <th>Call Price</th>
+                  <th>Put Price</th>
+                </tr>
+              </thead>
+              <tbody>
+                {history.map((calc) => (
+                  <tr key={calc.id} className={selectedRows.has(calc.id) ? 'selected' : ''}>
+                    <td className="checkbox-column">
+                      <input
+                        type="checkbox"
+                        checked={selectedRows.has(calc.id)}
+                        onChange={() => toggleRowSelection(calc.id)}
+                        className="row-checkbox"
+                      />
+                    </td>
+                    <td>{formatDate(calc.created_at)}</td>
+                    <td>${formatCurrency(calc.s0)}</td>
+                    <td>${formatCurrency(calc.x)}</td>
+                    <td>{calc.t.toFixed(2)}</td>
+                    <td>{(calc.r * 100).toFixed(2)}%</td>
+                    <td>{(calc.d * 100).toFixed(2)}%</td>
+                    <td>{(calc.v * 100).toFixed(2)}%</td>
+                    <td className="price-cell">${formatCurrency(calc.call_price)}</td>
+                    <td className="price-cell">${formatCurrency(calc.put_price)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="history-footer-controls">
+            {totalPages > 1 && (
+              <div className="pagination">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="pagination-button"
+                >
+                  Previous
+                </button>
+                <span className="pagination-page-info">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  className="pagination-button"
+                >
+                  Next
+                </button>
               </div>
             )}
+            <div className="items-per-page-bottom">
+              <label>Items per page:</label>
+              <select
+                value={itemsPerPage}
+                onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+                className="page-size-select"
+              >
+                <option value={10}>10</option>
+                <option value={100}>100</option>
+                <option value={500}>500</option>
+              </select>
+            </div>
           </div>
-          <div className="dropdown-container">
-            <button 
-              onClick={() => { setShowExportDropdown(!showExportDropdown); setShowCopyDropdown(false); }} 
-              className="export-button"
-            >
-              Export ↓
-            </button>
-            {showExportDropdown && (
-              <div className="dropdown-menu">
-                <button onClick={() => handleExport('csv')}>Export as CSV</button>
-                <button onClick={() => handleExport('sql')}>Export as SQL</button>
-                <button onClick={() => handleExport('json')}>Export as JSON</button>
-              </div>
-            )}
-          </div>
-          <button onClick={loadHistory} className="refresh-button">Refresh</button>
         </div>
-      </div>
-
-      <div className="history-selection-controls">
-        <div className="selection-actions">
-          <button 
-            type="button"
-            onClick={allSelected ? deselectAllRows : selectAllRows}
-            className="select-all-button"
-          >
-            {allSelected ? 'Deselect All' : 'Select All'}
-          </button>
-          <span className="selection-info">
-            {selectedRows.size > 0 
-              ? `${selectedRows.size} of ${history.length} selected`
-              : 'No rows selected (all will be exported)'}
-          </span>
-        </div>
-        <div className="pagination-info-top">
-          Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, totalCount)} of {totalCount} results
-        </div>
-      </div>
-
-      <div className="history-table-container">
-        <table className="history-table">
-          <thead>
-            <tr>
-              <th className="checkbox-column"></th>
-              <th>Date</th>
-              <th>S<sub>0</sub></th>
-              <th>X</th>
-              <th>t (years)</th>
-              <th>r</th>
-              <th>d</th>
-              <th>v</th>
-              <th>Call Price</th>
-              <th>Put Price</th>
-            </tr>
-          </thead>
-          <tbody>
-            {history.map((calc) => (
-              <tr key={calc.id} className={selectedRows.has(calc.id) ? 'selected' : ''}>
-                <td className="checkbox-column">
-                  <input
-                    type="checkbox"
-                    checked={selectedRows.has(calc.id)}
-                    onChange={() => toggleRowSelection(calc.id)}
-                    className="row-checkbox"
-                  />
-                </td>
-                <td>{formatDate(calc.created_at)}</td>
-                <td>${formatCurrency(calc.s0)}</td>
-                <td>${formatCurrency(calc.x)}</td>
-                <td>{calc.t.toFixed(2)}</td>
-                <td>{(calc.r * 100).toFixed(2)}%</td>
-                <td>{(calc.d * 100).toFixed(2)}%</td>
-                <td>{(calc.v * 100).toFixed(2)}%</td>
-                <td className="price-cell">${formatCurrency(calc.call_price)}</td>
-                <td className="price-cell">${formatCurrency(calc.put_price)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="history-footer-controls">
-        {totalPages > 1 && (
-          <div className="pagination">
-            <button 
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-              disabled={currentPage === 1}
-              className="pagination-button"
-            >
-              Previous
-            </button>
-            <span className="pagination-page-info">
-              Page {currentPage} of {totalPages}
-            </span>
-            <button 
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-              disabled={currentPage === totalPages}
-              className="pagination-button"
-            >
-              Next
-            </button>
-          </div>
-        )}
-        <div className="items-per-page-bottom">
-          <label>Items per page:</label>
-          <select 
-            value={itemsPerPage} 
-            onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
-            className="page-size-select"
-          >
-            <option value={10}>10</option>
-            <option value={100}>100</option>
-            <option value={500}>500</option>
-          </select>
-        </div>
-      </div>
-    </div>
+      )}
+    </>
   );
 };

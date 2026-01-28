@@ -46,15 +46,17 @@ black-scholes-calculator/
 
 ### 1. Install Dependencies
 
-**Windows (PowerShell):**
+**Windows (PowerShell, recommended):**
 ```powershell
 cd black-scholes-calculator
 powershell -ExecutionPolicy Bypass -File .\install_dependencies.ps1
 ```
 
-This script automatically installs all backend (Python) and frontend (Node.js) dependencies.
+This script automatically installs:
+- **Backend** dependencies from `backend/requirements.txt`
+- **Frontend** dependencies via `npm install` in `frontend/`
 
-**Manual Installation (Alternative):**
+If you prefer to install manually:
 ```bash
 # Backend
 cd backend
@@ -66,35 +68,48 @@ cd ../frontend
 npm install
 ```
 
-### 2. Run the Application
+> **Python note (Windows):** If you have multiple Python versions and see issues with Python 3.14+, run commands with `py -3.11` instead of `python` (e.g. `py -3.11 -m pip install -r requirements.txt`).
 
-**Start Backend (Terminal 1):**
+### 2. Start the Backend API
+
+Open **Terminal 1**:
 ```bash
 cd backend
-uvicorn app.main:app --reload
+python -m uvicorn app.main:app --reload --port 8000
 ```
-Backend runs at `http://localhost:8000`  
-API docs available at `http://localhost:8000/docs`
-
-**Start Frontend (Terminal 2):**
+On Windows with multiple Python versions you can use:
 ```bash
-cd frontend
-npm start
+cd backend
+py -3.11 -m uvicorn app.main:app --reload --port 8000
 ```
-Frontend opens at `http://localhost:3000`
 
-**Note:** Ensure the backend is running before starting the frontend.
+- API base URL: `http://localhost:8000`
+- Interactive docs: `http://localhost:8000/docs`
+- Health check: `http://localhost:8000/health`
 
-### 3. Generate Sample Data (Optional)
+### 3. Generate Sample Data (Optional but recommended)
 
-To populate the database with 100 random sample calculations for testing:
+To pre-populate the database with **100 random sample calculations**:
 
 ```bash
 cd backend
 python add_sample_data.py
+# or, if needed:
+py -3.11 add_sample_data.py
 ```
 
-**Note:** Make sure dependencies are installed first (see Step 1).
+This creates/updates `backend/calculations.db` so the **History** tab is populated immediately.
+
+### 4. Start the Frontend UI
+
+Open **Terminal 2**:
+```bash
+cd frontend
+npm start
+```
+
+- Frontend UI: `http://localhost:3000`
+- Make sure the backend from Step 2 is running first.
 
 ### Troubleshooting
 
@@ -103,43 +118,46 @@ python add_sample_data.py
 
 ## Usage
 
-1. **Calculate Option Prices:**
-   - Enter the required parameters in the **Calculator** tab:
-     - **S₀**: Current stock price (must be positive)
-     - **X**: Strike price (must be positive)
-     - **t**: Time to maturity in years (must be positive)
-     - **r**: Risk-free interest rate
-     - **d**: Dividend yield
-     - **v**: Volatility
-   - For **r**, **d** and **v** you can choose between **Percent (%)** and **Decimal** input modes:
-     - Percent example: `5` → interpreted as `5%` → sent to the API as `0.05`
-     - Decimal example: `0.05` → interpreted directly as `5%`
-   - A parameter definition panel below the form explains each input and the conventions used.
-   - Click **“Calculate Black-Scholes Prices”** to compute call and put option prices.
-   - The results panel displays the calculated prices and intermediate values (d₁, d₂) along with a timestamp.
+1. **Calculator tab (single and batch in one view):**
+   - Enter parameters in the table:
+     - **S₀** – Current stock price (must be > 0)
+     - **X** – Strike price (must be > 0)
+     - **t** – Time to maturity in years (e.g. 3 months ≈ 0.25; must be > 0)
+     - **r (%)** – Risk-free rate (entered as a **percentage**, e.g. `5` for 5%)
+     - **d (%)** – Dividend yield (percentage)
+     - **v (%)** – Volatility (percentage)
+   - Use **“+ Add Row”** to add additional scenarios; all rows are submitted together.
+   - For a **single row**, the backend performs a standard calculation and the **Results** panel shows:
+     - Call and put prices
+     - Intermediate values d₁ and d₂
+     - Input summary and timestamp
+   - For **multiple rows**, the form uses the batch API under the hood and shows a summary of successes/failures.
 
-2. **View History:**
-   - Click on the **History** tab to view all previous calculations.
-   - The table shows inputs (S₀, X, t, r, d, v) and the resulting call/put prices.
-   - Click **Refresh** to reload the history.
+2. **Context panels (below the calculator):**
+   - **Parameter Definitions**: explains each of S₀, X, t, r, d, v and N(x), with notes on units and typical usage.
+   - **Black‑Scholes Formula**: shows the closed-form call/put formulas plus the definitions of d₁ and d₂ for quick reference.
 
-3. **Batch Calculations:**
-   - Click on the **Batch** tab to calculate multiple option prices at once.
-   - Add multiple rows with different parameter sets.
-   - All calculations are processed in a single API call for efficiency.
-   - Results show successful/failed counts and a table of all calculated prices.
+3. **History tab:**
+   - Shows a paginated table of previous calculations (including seeded sample data if you ran `add_sample_data.py`):
+     - Inputs (S₀, X, t, r, d, v) and resulting call/put prices.
+   - Features:
+     - **Row selection** with “Select All / Deselect All”
+     - **Items per page**: 10, 100, or 500 rows
+     - **Copy** selected (or all) rows to clipboard as **CSV, SQL, or JSON**
+     - **Export** selected (or all) rows as downloadable **CSV, SQL, or JSON** files
+     - **Refresh** button to re-query the backend.
 
 ## Challenge Requirements Checklist
 
 - **React + TypeScript frontend** for input, results, and history views.
 - **FastAPI + Python backend** implementing the Black‑Scholes formula including dividend yield.
 - **SQLite database** for persisting calculation history.
-- **API layer** to calculate prices and retrieve history.
+- **API layer** to calculate prices (single and batch) and retrieve history with pagination.
 - **Tests**:
   - Backend: unit tests for pricing logic, API tests, and model tests.
   - Frontend: tests for core components and API client.
 - **GitHub repository** with clear documentation and setup instructions.
-- **User-friendly UI** with percentage/decimal toggle and in‑context parameter definitions.
+- **User-friendly UI** with percentage-based inputs, integrated batch calculator, parameter definitions, and in‑context formulas.
 
 ## API Endpoints
 
@@ -243,9 +261,8 @@ The following assumptions are made in this implementation:
 4. **Time in years**: All time-to-maturity inputs must be provided in years. Users are responsible for converting from days or months (e.g., 30 days = 30/365 ≈ 0.082 years).
 
 5. **Decimal format for rates**: All rates (interest rate, dividend yield, volatility) must be entered as decimals:
-   - 5% = 0.05
-   - 20% = 0.20
-   - 2.5% = 0.025
+   - **Backend/API**: expects decimals (e.g. 5% = 0.05).
+   - **Frontend UI**: users enter percentages (e.g. `5`, `20`, `2.5`), which are converted to decimals before calling the API.
 
 6. **No transaction costs**: The model assumes no transaction costs or taxes.
 
@@ -311,18 +328,17 @@ All errors are displayed to the user with appropriate error messages.
 ## Features
 
 - ✅ **Single Calculation**: Calculate individual option prices with detailed results
-- ✅ **Batch Calculations**: Process multiple parameter sets simultaneously
-- ✅ **Calculation History**: View and manage all previous calculations
-- ✅ **Flexible Input**: Support for both percentage and decimal input formats
-- ✅ **Parameter Definitions**: Built-in help panel explaining each input parameter
+- ✅ **Batch Calculations**: Process multiple parameter sets simultaneously from the main calculator table
+- ✅ **Calculation History**: View and manage all previous calculations with pagination
+- ✅ **Export & Copy**: Export or copy selected/all history rows as CSV, SQL, or JSON
+- ✅ **Parameter Definitions & Formula Panel**: Built-in help explaining each input and the Black-Scholes formulas
 
 ## Future Enhancements
 
 Potential improvements:
 - Add support for American options
 - Implement Greeks calculation (Delta, Gamma, Theta, Vega, Rho)
-- Add option to export history to CSV
-- Implement pagination for large history lists
 - Add user authentication and personal calculation history
+
 
 

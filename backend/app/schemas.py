@@ -55,3 +55,7 @@ class BatchCalculationResponse(BaseModel):
     successful: int
     failed: int
 
+
+class HistoryDeleteRequest(BaseModel):
+    ids: List[int] = Field(..., min_items=1, description="IDs of calculations to delete")
+

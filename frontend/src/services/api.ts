@@ -45,3 +45,17 @@ export async function batchCalculateBlackScholes(
   });
   return handleResponse<BatchCalculationResponse>(response);
 }
+
+export async function deleteHistoryEntries(ids: number[]): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/api/history`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ ids }),
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: response.statusText }));
+    throw new Error(error.detail || `HTTP error! status: ${response.status}`);
+  }
+}

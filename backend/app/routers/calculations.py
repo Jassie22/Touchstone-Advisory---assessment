@@ -85,6 +85,22 @@ def get_history_count(db: Session = Depends(get_db)):
     return {"total": count}
 
 
+@router.delete("/history", status_code=status.HTTP_204_NO_CONTENT)
+def delete_calculations(
+    payload: schemas.HistoryDeleteRequest, db: Session = Depends(get_db)
+) -> None:
+    """
+    Delete one or more calculations by ID.
+    """
+    if not payload.ids:
+        return
+
+    db.query(models.Calculation).filter(models.Calculation.id.in_(payload.ids)).delete(
+        synchronize_session=False
+    )
+    db.commit()
+
+
 @router.get(
     "/history/{calculation_id}",
     response_model=schemas.CalculationRead,

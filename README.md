@@ -333,12 +333,7 @@ All errors are displayed to the user with appropriate error messages.
 - ✅ **Export & Copy**: Export or copy selected/all history rows as CSV, SQL, or JSON
 - ✅ **Parameter Definitions & Formula Panel**: Built-in help explaining each input and the Black-Scholes formulas
 
-## Future Enhancements
 
-Potential improvements:
-- Add support for American options
-- Implement Greeks calculation (Delta, Gamma, Theta, Vega, Rho)
-- Add user authentication and personal calculation history
 
 
 

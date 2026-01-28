@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { CalculationSummary } from '../types';
 import { getCalculationHistory } from '../services/api';
+import { deleteHistoryEntries } from '../services/api';
 
 type ExportFormat = 'csv' | 'sql' | 'json';
 
@@ -101,9 +102,6 @@ export const HistoryView: React.FC = () => {
   };
 
   const getSelectedCalculations = (): CalculationSummary[] => {
-    if (selectedRows.size === 0) {
-      return history; // If nothing selected, export all
-    }
     return history.filter(calc => selectedRows.has(calc.id));
   };
 
@@ -257,6 +255,23 @@ export const HistoryView: React.FC = () => {
   const allSelected = history.length > 0 && selectedRows.size === history.length;
   const someSelected = selectedRows.size > 0 && selectedRows.size < history.length;
 
+  const handleDeleteSelected = async () => {
+    if (selectedRows.size === 0) {
+      showToast('Please select at least one row to delete.', 'error');
+      return;
+    }
+
+    const idsToDelete = Array.from(selectedRows);
+    try {
+      await deleteHistoryEntries(idsToDelete);
+      showToast(`Deleted ${idsToDelete.length} entr${idsToDelete.length === 1 ? 'y' : 'ies'} from history.`, 'success');
+      await loadHistory();
+      setSelectedRows(new Set());
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to delete selected history rows.', 'error');
+    }
+  };
+
   return (
     <>
       {toastMessage && (
@@ -327,10 +342,17 @@ export const HistoryView: React.FC = () => {
               >
                 {allSelected ? 'Deselect All' : 'Select All'}
               </button>
+              <button
+                type="button"
+                onClick={handleDeleteSelected}
+                className="delete-selected-button"
+              >
+                Delete Selected
+              </button>
               <span className="selection-info">
                 {selectedRows.size > 0
                   ? `${selectedRows.size} of ${history.length} selected`
-                  : 'No rows selected (all will be exported)'}
+                  : 'No rows selected'}
               </span>
             </div>
             <div className="pagination-info-top">

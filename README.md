@@ -25,6 +25,7 @@ black-scholes-calculator/
 │   │   └── routers/
 │   │       └── calculations.py # API endpoints
 │   ├── tests/              # Backend tests
+│   ├── add_sample_data.py  # Script to generate sample data
 │   └── requirements.txt    # Python dependencies
 ├── frontend/               # React TypeScript frontend
 │   ├── src/
@@ -32,7 +33,10 @@ black-scholes-calculator/
 │   │   ├── services/       # API service layer
 │   │   ├── types/          # TypeScript types
 │   │   └── __tests__/      # Frontend tests
-│   └── package.json        # Node.js dependencies
+│   ├── public/             # Static assets
+│   ├── package.json        # Node.js dependencies
+│   └── tsconfig.json       # TypeScript configuration
+├── install_dependencies.ps1 # Dependency installation script
 └── README.md               # This file
 ```
 

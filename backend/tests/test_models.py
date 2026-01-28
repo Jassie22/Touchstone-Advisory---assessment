@@ -3,8 +3,6 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 
 from app.models import Calculation
-from app.database import Base, engine, get_db
-from tests.conftest import override_get_db
 
 
 class TestCalculationModel:

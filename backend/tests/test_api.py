@@ -58,7 +58,7 @@ class TestCalculateEndpoint:
         }
         response = client.post("/api/calculate", json=payload)
         
-        assert response.status_code == 400
+        assert response.status_code == 422  # FastAPI returns 422 for Pydantic validation errors
         assert "detail" in response.json()
 
     def test_calculate_invalid_input_zero_volatility(self, client: TestClient):
@@ -73,7 +73,7 @@ class TestCalculateEndpoint:
         }
         response = client.post("/api/calculate", json=payload)
         
-        assert response.status_code == 400
+        assert response.status_code == 422  # FastAPI returns 422 for Pydantic validation errors
 
     def test_calculate_persists_to_database(self, client: TestClient, db_session: Session):
         """Test that calculation is saved to database."""
